@@ -2,36 +2,21 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function signedIn() { return request.auth != null; }
-    function isAdmin() {
-      return signedIn()
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
+    // ระบบนี้จัดการล็อกอิน/สิทธิ์ในระดับแอป (ไม่ใช้ Firebase Authentication)
+    // Firestore จึงไม่รู้ว่าใครเป็นผู้เรียก — กติกาด้านล่างจึงเปิดให้อ่าน/เขียนได้
+    // เหมาะสำหรับใช้งานภายในโรงพยาบาล (คนที่มี URL + โค้ดแอปเท่านั้นที่เข้าถึง)
+    // การอนุมัติผู้ใช้ สิทธิ์ admin และการควบคุมการแก้ไข อยู่ในตัวแอป
+    //
+    // หากต้องการความปลอดภัยระดับสูงขึ้นในอนาคต ให้เปลี่ยนไปใช้ Firebase Authentication
+    // แล้วปรับกติกาให้ตรวจ request.auth
 
-    // ค่าคอนฟิก + รายชื่อหน่วยงาน — อ่านได้ทั่วไป (ใช้ในหน้าสมัคร) แต่แก้ไขได้เฉพาะผู้ดูแล
-    match /meta/{doc} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
+    match /indicators/{id} { allow read, write: if true; }
+    match /wards/{id}      { allow read, write: if true; }
+    match /users/{id}      { allow read, write: if true; }
+    match /chat/{id}       { allow read, write: if true; }
+    match /meta/{id}       { allow read, write: if true; }
 
-    // ตัวชี้วัด + ผลการบันทึก — เฉพาะผู้ที่ล็อกอินเท่านั้น (บุคลากรในโรงพยาบาล)
-    match /indicators/{id} {
-      allow read: if signedIn();
-      allow write: if signedIn();
-    }
-
-    // กล่องคำถาม
-    match /chat/{id} {
-      allow read: if signedIn();
-      allow write: if signedIn();
-    }
-
-    // ผู้ใช้งาน — อ่านได้ถ้าล็อกอิน, สร้างได้เฉพาะบัญชีตัวเอง, แก้ไข/ลบได้เฉพาะเจ้าของหรือผู้ดูแล
-    match /users/{uid} {
-      allow read: if signedIn();
-      allow create: if request.auth.uid == uid;
-      allow update, delete: if request.auth.uid == uid || isAdmin();
-    }
+    // ปฏิเสธ path อื่น ๆ ที่ไม่ได้ใช้
+    match /{document=**}   { allow read, write: if false; }
   }
 }

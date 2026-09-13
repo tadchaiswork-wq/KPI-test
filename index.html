@@ -166,30 +166,20 @@ details.def{margin-top:6px} details.def summary{cursor:pointer;color:var(--brand
 <div id="modal-root"></div>
 <div id="toast-root"></div>
 
-<!-- Firebase SDK (v10 compat) -->
+<!-- Firebase SDK (v10 compat) — Firestore only (auth จัดการในแอป) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<!-- ค่า config ของคุณอยู่ในไฟล์แยก firebase-config.js (แก้ครั้งเดียว ไม่ต้องแตะไฟล์นี้) -->
+<script src="firebase-config.js"></script>
 
 <script>
 /* ================= KPI Dashboard — โรงพยาบาลชัยนาทนเรนทร ================= */
 "use strict";
 
-/* ==========================================================================
-   ⬇️⬇️⬇️  วางค่า Firebase config ของโครงการคุณตรงนี้  ⬇️⬇️⬇️
-   (คัดลอกจาก Firebase Console → Project settings → Your apps → SDK setup)
-   ========================================================================== */
-const firebaseConfig = {
-    apiKey: "AIzaSyBUYT_vHxEWBhAYNc8mjcamba2bbzTF-bE",
-    authDomain: "kpi-jnh.firebaseapp.com",
-    projectId: "kpi-jnh",
-    storageBucket: "kpi-jnh.firebasestorage.app",
-    messagingSenderId: "693292827396",
-    appId: "1:693292827396:web:bc6d768355a95942ce4651",
-    measurementId: "G-L24GXGE8MV"
-  };
-/* ⬆️⬆️⬆️  วางค่าด้านบนแล้วบันทึกไฟล์  ⬆️⬆️⬆️ */
-const FIREBASE_READY = !String(firebaseConfig.apiKey).startsWith("PASTE");
+/* ค่า Firebase config มาจากไฟล์ firebase-config.js (window.firebaseConfig)
+   ไม่ต้องแก้ไฟล์นี้ — แก้เฉพาะ firebase-config.js ครั้งเดียว */
+const firebaseConfig = (typeof window!=="undefined" && window.firebaseConfig) ? window.firebaseConfig : { apiKey:"PASTE_API_KEY" };
+const FIREBASE_READY = !!(firebaseConfig && firebaseConfig.apiKey && !String(firebaseConfig.apiKey).startsWith("PASTE"));
 const H = (tag, attrs={}, ...kids)=>{ const e=document.createElement(tag);
   for(const k in attrs){ if(k==="class")e.className=attrs[k]; else if(k==="html")e.innerHTML=attrs[k];
     else if(k.startsWith("on")&&typeof attrs[k]==="function")e.addEventListener(k.slice(2),attrs[k]);
@@ -200,21 +190,19 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function toast(msg){ const t=H("div",{class:"toast"},msg); $("#toast-root").append(t); setTimeout(()=>t.remove(),2600); }
 
-const state={ db:null, user:null, config:null, ind:new Map(), indArr:[], unsub:null, view:"home",
-  offline:false, seeding:false };
+const state={ db:null, user:null, config:null, ind:new Map(), indArr:[], unsub:null,
+  wards:[], unsubW:null, users:[], unsubU:null, view:"home", offline:false, seeding:false, sort:{} };
 
-/* ---------- auth helpers (Firebase) ---------- */
-const EMAIL_DOMAIN="cnhkpi.local";
-const uname2email=u=>String(u).trim().toLowerCase()+"@"+EMAIL_DOMAIN;
-function saveSession(){}  // Firebase persists the session itself
-function authErr(e){
-  const m={"auth/invalid-credential":"ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง",
-    "auth/wrong-password":"รหัสผ่านไม่ถูกต้อง","auth/user-not-found":"ไม่พบชื่อผู้ใช้นี้",
-    "auth/invalid-login-credentials":"ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง",
-    "auth/email-already-in-use":"ชื่อผู้ใช้นี้มีผู้ใช้แล้ว","auth/weak-password":"รหัสผ่านสั้นเกินไป (อย่างน้อย 6 ตัว)",
-    "auth/too-many-requests":"พยายามหลายครั้งเกินไป กรุณารอสักครู่","auth/network-request-failed":"เชื่อมต่อเครือข่ายไม่ได้"};
-  return m[e&&e.code]||("เกิดข้อผิดพลาด: "+(e&&e.message||e));
+/* ---------- auth helpers (app-managed, no Firebase Auth) ---------- */
+async function hashPw(username,pw){
+  const data=new TextEncoder().encode(String(username).toLowerCase()+":"+pw+":kpi-cnh-salt-v1");
+  const buf=await crypto.subtle.digest("SHA-256",data);
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
 }
+const LS_KEY="kpi_cnh_session";
+function saveSession(u){ try{localStorage.setItem(LS_KEY,JSON.stringify({username:u.username,t:(u.passHash||"").slice(0,16)}));}catch(e){} }
+function clearSession(){ try{localStorage.removeItem(LS_KEY);}catch(e){} }
+const ADMIN_CODE="CNH-ADMIN";  // รหัสสำหรับตั้งเป็นผู้ดูแลตอนสมัคร (เปลี่ยนได้)
 
 /* ---------- status / value logic ---------- */
 function parseTarget(t){
@@ -259,35 +247,25 @@ function periodLabel(mode,y,sub){
   return "ปี "+y;
 }
 
-/* ================= boot (Firebase) ================= */
+/* ================= boot (Firestore, app-managed auth) ================= */
 async function boot(){
   if(!window.firebase || !FIREBASE_READY){ state.offline=true; renderAuth(); return; }
   try{
     if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    state.db=firebase.firestore(); state.auth=firebase.auth();
+    state.db=firebase.firestore();
   }catch(e){ console.error(e); state.offline=true; renderAuth(); return; }
-  // public config (meta is world-readable) for the register unit dropdown
   try{ const c=await state.db.doc("meta/config").get(); if(c.exists) state.config=c.data(); }catch(e){}
-  state.auth.onAuthStateChanged(async fbUser=>{
-    if(fbUser){
-      try{
-        let snap=await state.db.doc("users/"+fbUser.uid).get();
-        if(!snap.exists){ // may be mid-registration — retry once before falling back
-          await new Promise(r=>setTimeout(r,700));
-          snap=await state.db.doc("users/"+fbUser.uid).get();
-        }
-        if(snap.exists){ state.user={uid:fbUser.uid,...snap.data()}; }
-        else { const un=(fbUser.email||"").split("@")[0];
-          state.user={uid:fbUser.uid,username:un,displayName:un,role:"user",units:[],person:un,_incomplete:true}; }
-      }catch(e){ const un=(fbUser.email||"").split("@")[0];
-        state.user={uid:fbUser.uid,username:un,displayName:un,role:"user",units:[],person:un}; }
-      if(!state.config){ try{ const c=await state.db.doc("meta/config").get(); if(c.exists) state.config=c.data(); }catch(e){} }
-      subscribeIndicators();
-      renderApp();
-    } else {
-      state.user=null; if(state.unsub){state.unsub();state.unsub=null;} renderAuth();
-    }
-  });
+  // restore session
+  let sess=null; try{ sess=JSON.parse(localStorage.getItem(LS_KEY)||"null"); }catch(e){}
+  if(sess&&sess.username){
+    try{ const snap=await state.db.doc("users/"+sess.username).get();
+      if(snap.exists){ const u=snap.data();
+        if(u.passHash&&u.passHash.slice(0,16)===sess.t&&u.status==="approved"){ state.user={username:sess.username,...u}; } }
+    }catch(e){}
+  }
+  subscribeIndicators(); subscribeWards();
+  if(state.user){ if(state.user.role==="admin") subscribeUsers(); renderApp(); }
+  else renderAuth();
 }
 function subscribeIndicators(){
   if(!state.db||state.unsub) return;
@@ -297,6 +275,21 @@ function subscribeIndicators(){
     if(state.user) rerender();
   }, err=>{ console.warn("ind sub",err.code); });
 }
+function subscribeWards(){
+  if(!state.db||state.unsubW) return;
+  state.unsubW = state.db.collection("wards").onSnapshot(snap=>{
+    state.wards=[]; snap.docs.forEach(d=>{ if(d.exists) state.wards.push({id:d.id,...d.data()}); });
+    if(state.user) rerender();
+  }, err=>{ console.warn("ward sub",err.code); });
+}
+function subscribeUsers(){
+  if(!state.db||state.unsubU) return;
+  state.unsubU = state.db.collection("users").onSnapshot(snap=>{
+    state.users=[]; snap.docs.forEach(d=>{ if(d.exists) state.users.push({username:d.id,...d.data()}); });
+    if(state.user&&state.user.role==="admin"&&(state.view==="admin")) rerender();
+  }, err=>{ console.warn("user sub",err.code); });
+}
+function stopSubs(){ [ "unsub","unsubW","unsubU" ].forEach(k=>{ if(state[k]){state[k]();state[k]=null;} }); }
 
 /* ================= seeding ================= */
 async function needsSeed(){ if(!state.db) return false;
@@ -311,10 +304,13 @@ async function runSeed(btn){
     const seed=await res.json();
     await state.db.doc("meta/config").set({...seed.config, seededAt:new Date().toISOString(), seededBy:state.user?state.user.username:"admin"});
     state.config=seed.config;
-    let i=0; const docs=seed.indicators; const total=docs.length;
-    for(const d of docs){
-      await state.db.doc("indicators/"+d.id).set({...d, results:{}, createdAt:Date.now()});
-      i++; if(i%15===0){ set("นำเข้า "+i+"/"+total+" …"); await new Promise(r=>setTimeout(r,40)); }
+    const docs=seed.indicators; const total=docs.length; const CHUNK=200; const now=Date.now();
+    for(let start=0; start<total; start+=CHUNK){
+      const slice=docs.slice(start,start+CHUNK);
+      const batch=state.db.batch();
+      slice.forEach(d=>batch.set(state.db.doc("indicators/"+d.id),{...d, results:{}, createdAt:now}));
+      set("นำเข้า "+Math.min(start+CHUNK,total)+"/"+total+" …");
+      await batch.commit();
     }
     set("เสร็จสิ้น ✓"); toast("นำเข้าตัวชี้วัด "+total+" รายการเรียบร้อย");
     state.seeding=false; return true;
@@ -332,7 +328,7 @@ function renderAuth(){
     card.append(H("div",{class:"logo"},"K"));
     card.append(H("h2",{},"KPI โรงพยาบาลชัยนาทนเรนทร"));
     card.append(H("div",{class:"hsub"},"ระบบติดตามตัวชี้วัดคุณภาพโรงพยาบาล"));
-    if(state.offline){ card.append(H("div",{class:"err"},"ยังไม่ได้ตั้งค่า Firebase — กรุณาวางค่า firebaseConfig ในไฟล์ index.html (ดูขั้นตอนในคู่มือ README) แล้วเปิดหน้านี้ใหม่")); wrap.append(card); return; }
+    if(state.offline){ card.append(H("div",{class:"err"},"ยังไม่ได้ตั้งค่า Firebase — กรุณาวางค่า config ในไฟล์ firebase-config.js (แก้ไฟล์เดียว ดูขั้นตอนในคู่มือ README) แล้วรีเฟรชหน้านี้")); wrap.append(card); return; }
     const tabs=H("div",{class:"auth-tabs"},
       H("button",{class:mode==="login"?"on":"",onclick:()=>{mode="login";err=ok="";draw();}},"เข้าสู่ระบบ"),
       H("button",{class:mode==="register"?"on":"",onclick:()=>{mode="register";err=ok="";draw();}},"สมัครสมาชิก"));
@@ -348,8 +344,16 @@ function renderAuth(){
       const doLogin=async()=>{ err=ok=""; const un=u.value.trim().toLowerCase();
         if(!un||!p.value){ err="กรอกชื่อผู้ใช้และรหัสผ่าน"; return draw(); }
         go.textContent="กำลังตรวจสอบ…";
-        try{ await state.auth.signInWithEmailAndPassword(uname2email(un),p.value); /* onAuthStateChanged จะพาเข้าระบบ */ }
-        catch(e){ err=authErr(e); draw(); } };
+        try{ const snap=await state.db.doc("users/"+un).get();
+          if(!snap.exists){ err="ไม่พบชื่อผู้ใช้นี้"; return draw(); }
+          const ud=snap.data(); const hh=await hashPw(un,p.value);
+          if(hh!==ud.passHash){ err="รหัสผ่านไม่ถูกต้อง"; return draw(); }
+          if(ud.status==="pending"){ err="บัญชีนี้กำลังรอผู้ดูแลอนุมัติ กรุณารอสักครู่"; return draw(); }
+          if(ud.status==="rejected"){ err="บัญชีนี้ถูกปฏิเสธการเข้าใช้ กรุณาติดต่อผู้ดูแล"; return draw(); }
+          state.user={username:un,...ud}; saveSession(state.user);
+          subscribeIndicators(); subscribeWards(); if(state.user.role==="admin") subscribeUsers();
+          renderApp();
+        }catch(e){ err="เกิดข้อผิดพลาด: "+e.message; draw(); } };
       go.onclick=doLogin; p.addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
       card.append(go);
     } else {
@@ -371,20 +375,22 @@ function renderAuth(){
         if(p.value.length<6){err="รหัสผ่านอย่างน้อย 6 ตัว";return draw();}
         go.textContent="กำลังสมัคร…";
         try{
-          const cred=await state.auth.createUserWithEmailAndPassword(uname2email(un),p.value);
-          const uid=cred.user.uid;
-          let isAdmin=false;
-          if(code.value.trim()==="CNH-ADMIN") isAdmin=true;
-          else { try{ const all=await state.db.collection("users").limit(1).get(); if(all.empty) isAdmin=true; }catch(e){} }
-          const unit=unitSel.value;
-          const doc={username:un,displayName:dn.value.trim(),role:isAdmin?"admin":"user",
-            units:unit?[unit]:[], person:dn.value.trim(), createdAt:Date.now()};
-          await state.db.doc("users/"+uid).set(doc);
-          state.user={uid,...doc}; renderApp();  // onAuthStateChanged will also fire
-        }catch(e){ err=authErr(e); draw(); } };
+          const ref=state.db.doc("users/"+un); const ex=await ref.get();
+          if(ex.exists){ err="ชื่อผู้ใช้นี้มีผู้ใช้แล้ว"; return draw(); }
+          let isAdmin=false, first=false;
+          if(code.value.trim()===ADMIN_CODE) isAdmin=true;
+          else { try{ const all=await state.db.collection("users").limit(1).get(); if(all.empty){isAdmin=true;first=true;} }catch(e){} }
+          const passHash=await hashPw(un,p.value); const unit=unitSel.value;
+          const doc={username:un,displayName:dn.value.trim(),passHash,role:isAdmin?"admin":"user",
+            status:(isAdmin?"approved":"pending"), units:unit?[unit]:[], person:dn.value.trim(), createdAt:Date.now()};
+          await ref.set(doc);
+          if(doc.status==="approved"){ state.user={...doc}; saveSession(state.user);
+            subscribeIndicators(); subscribeWards(); if(isAdmin) subscribeUsers(); renderApp(); }
+          else { mode="login"; err=""; ok="สมัครสำเร็จ! บัญชีของท่านกำลังรอผู้ดูแลอนุมัติ เมื่อได้รับอนุมัติแล้วจึงเข้าใช้งานได้"; draw(); }
+        }catch(e){ err="สมัครไม่สำเร็จ: "+e.message; draw(); } };
       card.append(go);
       card.append(H("div",{class:"muted",style:"font-size:11.5px;margin-top:12px;text-align:center"},
-        "ผู้สมัครคนแรกจะเป็นผู้ดูแลระบบโดยอัตโนมัติ"));
+        "ผู้สมัครคนแรกเป็นผู้ดูแลอัตโนมัติ • ผู้สมัครทั่วไปต้องรอผู้ดูแลอนุมัติก่อนเข้าใช้งาน"));
     }
     wrap.append(card);
   }
@@ -398,6 +404,7 @@ const NAV=[
   {id:"record",ic:"📝",t:"บันทึกผล KPI"},
   {id:"edit",ic:"⚙️",t:"แก้ไขตัวชี้วัด"},
   {id:"owners",ic:"👥",t:"ผู้รับผิดชอบตัวชี้วัด"},
+  {id:"admin",ic:"🛡️",t:"ผู้ดูแลระบบ",admin:true},
 ];
 function renderApp(){
   $("#root").innerHTML="";
@@ -407,8 +414,12 @@ function renderApp(){
     H("div",{class:"t1"},"KPI Dashboard"),
     H("div",{class:"t2"},(state.config&&state.config.hospital)||"โรงพยาบาลชัยนาทนเรนทร")));
   const nav=H("div",{class:"sb-nav"});
-  NAV.forEach(n=>nav.append(H("button",{class:"nav-item"+(state.view===n.id?" active":""),onclick:()=>go(n.id)},
-    H("span",{class:"ic"},n.ic),H("span",{},n.t))));
+  const pend=state.users.filter(x=>x.status==="pending").length;
+  NAV.filter(n=>!n.admin||state.user.role==="admin").forEach(n=>{
+    const it=H("button",{class:"nav-item"+(state.view===n.id?" active":""),onclick:()=>go(n.id)},
+      H("span",{class:"ic"},n.ic),H("span",{},n.t));
+    if(n.id==="admin"&&pend) it.append(H("span",{style:"margin-left:auto;background:var(--red);color:#fff;border-radius:999px;font-size:11px;padding:1px 7px;font-weight:700"},pend));
+    nav.append(it); });
   sb.append(nav);
   const u=state.user;
   const su=H("div",{class:"sb-user"});
@@ -432,7 +443,7 @@ function renderApp(){
 }
 function go(v){ state.view=v; $("#sidebar")&&$("#sidebar").classList.remove("open"); renderApp(); }
 function rerender(){ if($("#content")) routeRender(); }
-function logout(){ try{ state.auth.signOut(); }catch(e){} }
+function logout(){ clearSession(); stopSubs(); state.user=null; state.users=[]; renderAuth(); }
 
 function routeRender(){
   const c=$("#content"); if(!c) return; c.innerHTML="";
@@ -447,21 +458,50 @@ function routeRender(){
       card.append(b); c.append(card); return;
     }
   }
-  const V={home:viewHome,report:viewReport,record:viewRecord,edit:viewEdit,owners:viewOwners}[state.view]||viewHome;
+  if(state.view==="admin" && state.user.role!=="admin") state.view="home";
+  const V={home:viewHome,report:viewReport,record:viewRecord,edit:viewEdit,owners:viewOwners,admin:viewAdmin}[state.view]||viewHome;
   try{ V(c); }catch(e){ console.error(e); c.append(H("div",{class:"card pad"},"เกิดข้อผิดพลาดในการแสดงผล: "+e.message)); }
 }
 
 /* ---------- shared helpers ---------- */
+function personKeys(u){ return [u.person,u.displayName,u.username].filter(Boolean).map(s=>String(s).trim()); }
+function myWards(){ const u=state.user; if(!u) return []; const ks=personKeys(u);
+  return state.wards.filter(w=>ks.includes((w.head||"").trim())||ks.includes((w.collector||"").trim())); }
+function wardsForIndicator(ind){ // wards that collect this indicator
+  if(ind.allPCT) return state.wards.filter(w=>!ind.team||true); // ทุก PCT → ทุกหอ
+  const ids=ind.wards||[]; return state.wards.filter(w=>ids.includes(w.id)); }
 function ownsIndicator(ind){
   const u=state.user; if(!u) return false; if(u.role==="admin") return true;
-  const me=(u.person||u.displayName||"").trim();
-  if((ind.owners||[]).some(o=>o&&me&&o.trim()===me)) return true;
-  if((ind.secondary||[]).some(o=>o&&me&&o.trim()===me)) return true;
+  const ks=personKeys(u);
+  if((ind.owners||[]).some(o=>o&&ks.includes(o.trim()))) return true;
+  if((ind.secondary||[]).some(o=>o&&ks.includes(o.trim()))) return true;
   if((u.units||[]).includes(ind.unit)) return true;
   if((ind.relatedUnits||[]).some(r=>(u.units||[]).includes(r))) return true;
+  // ward head / collector
+  const mine=myWards().map(w=>w.id);
+  if(ind.allPCT && mine.length) return true;
+  if((ind.wards||[]).some(w=>mine.includes(w))) return true;
   return false;
 }
 function domainMeta(d){ return {pct:{t:"PCT (ทีมนำทางคลินิก)",c:"#0b6fb8"},support:{t:"งานสนับสนุน",c:"#12a6c9"},backoffice:{t:"Back office",c:"#7b61c9"}}[d]||{t:d,c:"#607089"}; }
+
+/* ---------- reusable column sorting ---------- */
+function sortRows(viewKey, rows, cols){
+  const s=state.sort[viewKey]; if(!s) return rows;
+  const col=cols.find(c=>c.key===s.key); if(!col||!col.val) return rows;
+  return rows.slice().sort((a,b)=>{ let x=col.val(a), y=col.val(b);
+    if(typeof x==="string"||typeof y==="string") return String(x==null?"":x).localeCompare(String(y==null?"":y),"th")*s.dir;
+    x=(x==null||isNaN(x))?-Infinity:x; y=(y==null||isNaN(y))?-Infinity:y; return (x<y?-1:x>y?1:0)*s.dir; });
+}
+function sortableHead(viewKey, cols){
+  const tr=H("tr",{}); const s=state.sort[viewKey];
+  cols.forEach(c=>{ const active=s&&s.key===c.key; const arrow=c.key?(active?(s.dir>0?" ▲":" ▼"):" ⇅"):"";
+    const th=H("th",{style:(c.key?"cursor:pointer;user-select:none;white-space:nowrap;":"")+(c.w?("width:"+c.w+";"):"")}, (c.label||"")+arrow);
+    if(c.key) th.onclick=()=>{ const cur=state.sort[viewKey];
+      state.sort[viewKey]=(cur&&cur.key===c.key)?{key:c.key,dir:-cur.dir}:{key:c.key,dir:1}; rerender(); };
+    tr.append(th); });
+  return H("thead",{},tr);
+}
 
 function modal(title, bodyNode, footNodes){
   const bg=H("div",{class:"modal-bg",onclick:e=>{if(e.target===bg)bg.remove();}});
@@ -487,13 +527,10 @@ function openProfile(){
     try{
       const patch={displayName:body._dn.value.trim()||u.displayName, person:body._dn.value.trim()||u.person};
       if(np.value){ if(np.value.length<6){toast("รหัสผ่านใหม่อย่างน้อย 6 ตัว");return;}
-        if(!op.value){toast("กรอกรหัสผ่านเดิม");return;}
-        try{ const cred=firebase.auth.EmailAuthProvider.credential(uname2email(u.username),op.value);
-          await state.auth.currentUser.reauthenticateWithCredential(cred);
-          await state.auth.currentUser.updatePassword(np.value);
-        }catch(e){ toast("เปลี่ยนรหัสผ่านไม่สำเร็จ: รหัสผ่านเดิมไม่ถูกต้อง"); return; } }
-      await state.db.doc("users/"+u.uid).update(patch);
-      Object.assign(state.user,patch);
+        const oh=await hashPw(u.username,op.value); if(oh!==u.passHash){toast("รหัสผ่านเดิมไม่ถูกต้อง");return;}
+        patch.passHash=await hashPw(u.username,np.value); }
+      await state.db.doc("users/"+u.username).update(patch);
+      Object.assign(state.user,patch); saveSession(state.user);
       toast("บันทึกโปรไฟล์แล้ว"); save.closest(".modal-bg").remove(); renderApp();
     }catch(e){ toast("บันทึกไม่สำเร็จ: "+e.message); }
   };
@@ -663,13 +700,18 @@ function viewReport(c){
   summ.append(barLine("ยังไม่บันทึก",t.none,list.length,"var(--grey)"));
   summ.append(H("div",{style:"margin-top:8px;font-weight:700"},"อัตราผ่านเกณฑ์: "+(done?Math.round(t.pass/done*100):0)+"% ("+t.pass+"/"+done+" ที่บันทึกผล)"));
   c.append(summ);
-  // table
+  // table (sortable)
   const card=H("div",{class:"card"});
   const tb=H("table");
-  tb.append(H("thead",{},H("tr",{},H("th",{},"#"),H("th",{},"ตัวชี้วัด"),H("th",{},"หน่วยงาน"),H("th",{},"เป้าหมาย"),H("th",{},"ตัวตั้ง"),H("th",{},"ตัวหาร"),H("th",{},"ผล"),H("th",{},"สถานะ"))));
+  const STORD={pass:0,fail:1,recorded:2,none:3};
+  const rcols=[{label:"#",w:"40px"},{label:"ตัวชี้วัด",key:"n",val:i=>i.name},{label:"หน่วยงาน",key:"u",val:i=>i.unitName},
+    {label:"เป้าหมาย",key:"t",val:i=>i.target||""},{label:"ตัวตั้ง",key:"num",val:i=>{const r=resultAt(i,pk);return r&&r.num!=null?parseFloat(r.num):null;}},
+    {label:"ตัวหาร",key:"den",val:i=>{const r=resultAt(i,pk);return r&&r.den!=null?parseFloat(r.den):null;}},
+    {label:"ผล",key:"v",val:i=>computeValue(i,resultAt(i,pk))},{label:"สถานะ",key:"st",val:i=>STORD[statusOf(i,resultAt(i,pk))]}];
+  tb.append(sortableHead("report_tbl",rcols));
   const tbody=H("tbody");
   if(!list.length) tbody.append(H("tr",{},H("td",{colspan:8,class:"muted",style:"text-align:center;padding:26px"},"ไม่มีตัวชี้วัดในกลุ่มนี้")));
-  list.forEach((i,idx)=>{ const res=resultAt(i,pk); const st=statusOf(i,res); const v=computeValue(i,res);
+  sortRows("report_tbl",list,rcols).forEach((i,idx)=>{ const res=resultAt(i,pk); const st=statusOf(i,res); const v=computeValue(i,res);
     const tr=H("tr",{style:"cursor:pointer",onclick:()=>openIndicator(i.id)});
     tr.append(H("td",{class:"muted"},idx+1));
     tr.append(H("td",{},H("div",{style:"font-weight:600;max-width:380px"},i.name),
@@ -725,7 +767,12 @@ function openIndicator(id){
   def.append(kv("ตัวหาร",ind.denominator||"—"));
   def.append(kv("หน่วย",ind.unitType||"—"));
   def.append(kv("ผู้รับผิดชอบหลัก",(ind.owners||[]).join(", ")||"—"));
-  if((ind.secondary||[]).length) def.append(kv("ผู้รับผิดชอบรอง",(ind.secondary||[]).join(", ")));
+  if((ind.secondary||[]).length) def.append(kv("ผู้รับผิดชอบรอง (เพิ่มเติม)",(ind.secondary||[]).join(", ")));
+  const dws=wardsForIndicator(ind);
+  if(ind.allPCT) def.append(kv("ขอบเขต","ทุก PCT / ทุกหอผู้ป่วย"));
+  if(dws.length) def.append(kv("หอผู้ป่วยที่เก็บข้อมูล", H("div",{}, dws.map(w=>H("div",{style:"margin-bottom:2px"},
+    H("b",{},w.name), w.pct?H("span",{class:"tag",style:"margin:0 6px"},w.pct):null,
+    H("span",{class:"muted",style:"font-size:12px"},"รอง1: "+(w.head||"—")+" • รอง2: "+(w.collector||"—")))) )));
   def.append(kv("ระดับรายงาน",(ind.levels||[]).map(levLabel).join(" · ")||"—"));
   body.append(def);
   // record form
@@ -806,9 +853,13 @@ function viewRecord(c){
   c.append(alert);
   if(!mine.length){ c.append(H("div",{class:"card pad muted",style:"text-align:center"},"ยังไม่มีตัวชี้วัดที่ท่านรับผิดชอบ — ผู้ดูแลระบบสามารถกำหนดผู้รับผิดชอบได้ที่เมนูแก้ไขตัวชี้วัด")); return; }
   const card=H("div",{class:"card"});
-  const tb=H("table"); tb.append(H("thead",{},H("tr",{},H("th",{},"ตัวชี้วัด"),H("th",{},"เป้าหมาย"),H("th",{style:"width:110px"},"ตัวตั้ง"),H("th",{style:"width:110px"},"ตัวหาร"),H("th",{style:"width:110px"},"ค่า/ผล"),H("th",{style:"width:120px"},"สถานะ"),H("th",{style:"width:90px"},""))));
+  const RSORD={pass:0,fail:1,recorded:2,none:3};
+  const rcols=[{label:"ตัวชี้วัด",key:"n",val:i=>i.name},{label:"เป้าหมาย",key:"t",val:i=>i.target||""},
+    {label:"ตัวตั้ง",w:"110px"},{label:"ตัวหาร",w:"110px"},{label:"ค่า/ผล",w:"110px"},
+    {label:"สถานะ",key:"st",val:i=>RSORD[statusOf(i,resultAt(i,pk))],w:"120px"},{label:"",w:"90px"}];
+  const tb=H("table"); tb.append(sortableHead("record_tbl",rcols));
   const tbody=H("tbody");
-  mine.forEach(i=>{ const res=resultAt(i,pk)||{};
+  sortRows("record_tbl",mine,rcols).forEach(i=>{ const res=resultAt(i,pk)||{};
     const numI=H("input",{class:"inp",type:"number",value:res.num!=null?res.num:"",style:"padding:7px"});
     const denI=H("input",{class:"inp",type:"number",value:res.den!=null?res.den:"",style:"padding:7px"});
     const valI=H("input",{class:"inp",type:"number",value:res.value!=null?res.value:"",style:"padding:7px",placeholder:"auto"});
@@ -865,10 +916,12 @@ function rerenderEditList(){
   const w=$("#editlist"); if(!w)return; w.innerHTML="";
   const list=editableList();
   const card=H("div",{class:"card"});
-  const tb=H("table"); tb.append(H("thead",{},H("tr",{},H("th",{},"ตัวชี้วัด"),H("th",{},"หน่วยงาน"),H("th",{},"เป้าหมาย"),H("th",{},"ผู้รับผิดชอบ"),H("th",{style:"width:130px"},""))));
+  const ecols=[{label:"ตัวชี้วัด",key:"n",val:i=>i.name},{label:"หน่วยงาน",key:"u",val:i=>i.unitName},
+    {label:"เป้าหมาย",key:"t",val:i=>i.target||""},{label:"ผู้รับผิดชอบ",key:"o",val:i=>(i.owners||[]).join(", ")},{label:"",w:"130px"}];
+  const tb=H("table"); tb.append(sortableHead("edit_tbl",ecols));
   const tbody=H("tbody");
   if(!list.length) tbody.append(H("tr",{},H("td",{colspan:5,class:"muted",style:"text-align:center;padding:24px"},"ไม่พบตัวชี้วัด")));
-  list.slice(0,400).forEach(i=>{ tbody.append(H("tr",{},
+  sortRows("edit_tbl",list,ecols).slice(0,400).forEach(i=>{ tbody.append(H("tr",{},
     H("td",{},H("div",{style:"font-weight:600;max-width:360px"},i.name),i.serviceplan?H("span",{class:"tag"},"SP: "+i.serviceplan):null),
     H("td",{class:"muted"},i.unitName),
     H("td",{class:"muted"},i.target||"—"),
@@ -921,6 +974,20 @@ function editIndicator(id){
     cb.onchange=()=>{ if(cb.checked)F._rel.add(u.key); else F._rel.delete(u.key); };
     relBox.append(H("label",{style:"display:flex;gap:8px;align-items:center;font-size:12.5px;padding:2px 0"},cb,u.name)); });
   body.append(fld("หน่วยงานที่เกี่ยวข้อง (กระจายให้ช่วยเก็บข้อมูล)",relBox));
+  // all-PCT toggle
+  F._allPCT=!!ind.allPCT;
+  const allBtn=H("button",{class:"chip"+(F._allPCT?" on":"")},"ใช้กับทุก PCT (ทุกหอผู้ป่วยเก็บข้อมูล)");
+  allBtn.onclick=()=>{ F._allPCT=!F._allPCT; allBtn.classList.toggle("on",F._allPCT); wardBox.style.opacity=F._allPCT?"0.4":"1"; wardBox.style.pointerEvents=F._allPCT?"none":"auto"; };
+  body.append(fld("ขอบเขต",H("div",{class:"chip-row"},allBtn)));
+  // wards (หอผู้ป่วยที่เก็บข้อมูลตัวนี้)
+  const wardBox=H("div",{style:"max-height:150px;overflow:auto;border:1px solid var(--line);border-radius:9px;padding:8px"}); F._wards=new Set(ind.wards||[]);
+  if(!state.wards.length) wardBox.append(H("div",{class:"muted",style:"font-size:12px"},"ยังไม่มีหอผู้ป่วย — เพิ่มได้ที่เมนูผู้ดูแลระบบ › โครงสร้าง"));
+  state.wards.slice().sort((a,b)=>(a.pct||"").localeCompare(b.pct||"","th")).forEach(w=>{ const cb=H("input",{type:"checkbox"}); cb.checked=F._wards.has(w.id);
+    cb.onchange=()=>{ cb.checked?F._wards.add(w.id):F._wards.delete(w.id); };
+    wardBox.append(H("label",{style:"display:flex;gap:8px;align-items:center;font-size:12.5px;padding:2px 0"},cb,
+      H("span",{},w.name),w.pct?H("span",{class:"tag"},w.pct):null)); });
+  if(F._allPCT){ wardBox.style.opacity="0.4"; wardBox.style.pointerEvents="none"; }
+  body.append(fld("หอผู้ป่วยที่เก็บข้อมูลตัวชี้วัดนี้",wardBox));
 
   const save=H("button",{class:"btn primary"},isNew?"เพิ่มตัวชี้วัด":"บันทึกการแก้ไข");
   save.onclick=async()=>{
@@ -931,7 +998,8 @@ function editIndicator(id){
       name:F.name.value.trim(), target:F.target.value.trim(), unitType:F.unitType.value.trim()||"ร้อยละ",
       numerator:F.num.value.trim(), denominator:F.den.value.trim(),
       owners:splitC(F.owners.value).slice(0,2), secondary:splitC(F.secondary.value),
-      levels:[...F._lev], freq:[...F._freq], relatedUnits:[...F._rel] };
+      levels:[...F._lev], freq:[...F._freq], relatedUnits:[...F._rel],
+      wards:[...F._wards], allPCT:F._allPCT };
     save.textContent="กำลังบันทึก…";
     try{
       if(isNew){ await state.db.doc("indicators/"+ind.id).set({...doc,results:{},createdAt:Date.now()}); }
@@ -970,37 +1038,23 @@ function viewOwners(c){
         H("div",{class:"muted",style:"font-size:12.5px"},(last?((last.byName||"?")+": "+last.text):"")+"  ("+(t.messages||[]).length+" ข้อความ)"))); });
   }).catch(e=>{ tlist.innerHTML=""; tlist.append(H("div",{class:"muted"},"โหลดคำถามไม่ได้")); });
 
-  // roster by unit
-  const units=(state.config&&state.config.units)||[];
+  // roster by unit (sortable)
+  const units=((state.config&&state.config.units)||[]).slice();
   const byUnit=new Map(); state.indArr.forEach(i=>byUnit.set(i.unit,(byUnit.get(i.unit)||0)+1));
   const rc=H("div",{class:"card"}); rc.append(H("div",{class:"pad",style:"padding-bottom:6px;font-weight:700"},"รายชื่อผู้รับผิดชอบตามหน่วยงาน"));
-  const tb=H("table"); tb.append(H("thead",{},H("tr",{},H("th",{},"หน่วยงาน"),H("th",{},"กลุ่ม"),H("th",{},"ผู้รับผิดชอบ"),H("th",{style:"width:90px"},"จำนวน KPI"))));
+  const rows=units.map(u=>({u,cnt:byUnit.get(u.key)||0,owners:(u.owners||[]).join(", ")}));
+  const cols=[{label:"หน่วยงาน",key:"n",val:r=>r.u.name},{label:"กลุ่ม",key:"g",val:r=>domainMeta(r.u.domain).t},
+    {label:"ผู้รับผิดชอบ",key:"o",val:r=>r.owners},{label:"จำนวน KPI",key:"c",val:r=>r.cnt,w:"90px"}];
+  const tb=H("table"); tb.append(sortableHead("owners_roster",cols));
   const tbody=H("tbody");
-  units.sort((a,b)=>a.name.localeCompare(b.name,"th")).forEach(u=>{
-    tbody.append(H("tr",{},H("td",{style:"font-weight:600"},u.name),
-      H("td",{},H("span",{class:"pill b"},domainMeta(u.domain).t)),
-      H("td",{class:"muted"},(u.owners||[]).join(", ")||"—"),
-      H("td",{class:"mono-num"},byUnit.get(u.key)||0))); });
+  sortRows("owners_roster",rows,cols).forEach(r=>{
+    tbody.append(H("tr",{},H("td",{style:"font-weight:600"},r.u.name),
+      H("td",{},H("span",{class:"pill b"},domainMeta(r.u.domain).t)),
+      H("td",{class:"muted"},r.owners||"—"),
+      H("td",{class:"mono-num"},r.cnt))); });
   tb.append(tbody); rc.append(tb); c.append(rc);
-
-  // user management (admin)
-  if(state.user.role==="admin"){
-    const uc=H("div",{class:"card",style:"margin-top:16px"});
-    uc.append(H("div",{class:"pad",style:"padding-bottom:6px;font-weight:700"},"จัดการผู้ใช้งาน (ผู้ดูแลระบบ)"));
-    const ul=H("div",{class:"pad",style:"padding-top:6px"},H("div",{class:"muted"},"กำลังโหลด…")); uc.append(ul); c.append(uc);
-    state.db.collection("users").get().then(snap=>{ ul.innerHTML="";
-      const tb2=H("table"); tb2.append(H("thead",{},H("tr",{},H("th",{},"ชื่อที่แสดง"),H("th",{},"ชื่อผู้ใช้"),H("th",{},"หน่วยงาน"),H("th",{},"สิทธิ์"),H("th",{},""))));
-      const tbb=H("tbody");
-      snap.docs.forEach(d=>{ const u=d.data();
-        const roleSel=H("select",{class:"inp",style:"width:auto;padding:5px"},H("option",{value:"user"},"ผู้รับผิดชอบ"),H("option",{value:"admin"},"ผู้ดูแลระบบ")); roleSel.value=u.role;
-        roleSel.onchange=async()=>{ try{ await state.db.doc("users/"+d.id).update({role:roleSel.value}); toast("อัปเดตสิทธิ์แล้ว"); }catch(e){toast("ไม่สำเร็จ");} };
-        const unitNames=(u.units||[]).map(k=>(units.find(x=>x.key===k)||{}).name||k).join(", ");
-        tbb.append(H("tr",{},H("td",{style:"font-weight:600"},u.displayName||u.username),H("td",{class:"muted"},u.username),
-          H("td",{class:"muted"},unitNames||"—"),H("td",{},roleSel),
-          H("td",{},H("button",{class:"btn sm",onclick:()=>editUserUnits(d.id,u)},"หน่วยงาน")))); });
-      tb2.append(tbb); ul.append(tb2);
-    }).catch(e=>{ ul.innerHTML=""; ul.append(H("div",{class:"muted"},"โหลดรายชื่อผู้ใช้ไม่ได้")); });
-  }
+  if(state.user.role==="admin") c.append(H("div",{class:"muted",style:"font-size:12.5px;margin-top:10px"},
+    "จัดการผู้ใช้งาน อนุมัติสมาชิก และโครงสร้าง PCT–หอผู้ป่วย ได้ที่เมนู “ผู้ดูแลระบบ”"));
 }
 function editUserUnits(uid,u){
   const units=(state.config&&state.config.units)||[]; const sel=new Set(u.units||[]);
@@ -1009,7 +1063,7 @@ function editUserUnits(uid,u){
     cb.onchange=()=>{ cb.checked?sel.add(un.key):sel.delete(un.key); };
     box.append(H("label",{style:"display:flex;gap:8px;align-items:center;padding:4px 0;font-size:13px"},cb,un.name)); });
   const save=H("button",{class:"btn primary"},"บันทึก");
-  save.onclick=async()=>{ try{ await state.db.doc("users/"+uid).update({units:[...sel]}); toast("บันทึกหน่วยงานแล้ว"); save.closest(".modal-bg").remove(); if(uid===state.user.uid){state.user.units=[...sel];} rerender(); }catch(e){toast("ไม่สำเร็จ: "+e.message);} };
+  save.onclick=async()=>{ try{ await state.db.doc("users/"+uid).update({units:[...sel]}); toast("บันทึกหน่วยงานแล้ว"); save.closest(".modal-bg").remove(); if(uid===state.user.username){state.user.units=[...sel];saveSession(state.user);} rerender(); }catch(e){toast("ไม่สำเร็จ: "+e.message);} };
   modal("หน่วยงานที่รับผิดชอบ — "+(u.displayName||uid),box,[H("button",{class:"btn",onclick:e=>e.target.closest(".modal-bg").remove()},"ปิด"),save]);
 }
 function openChat(indId){
@@ -1038,6 +1092,159 @@ function openChat(indId){
       inp.value=""; draw(cur); send.textContent="ส่งข้อความ"; toast("ส่งข้อความแล้ว");
     }catch(e){ toast("ส่งไม่สำเร็จ: "+e.message); send.textContent="ส่งข้อความ"; } };
   modal("กล่องคำถามตัวชี้วัด",body,[H("button",{class:"btn",onclick:e=>e.target.closest(".modal-bg").remove()},"ปิด")]);
+}
+
+/* ================= VIEW: ADMIN (users + structure) ================= */
+state.admin={tab:"users"};
+function pctList(){ // PCT teams from indicators + any extra in config
+  const s=new Set(state.indArr.filter(i=>i.domain==="pct").map(i=>i.team).filter(Boolean));
+  ((state.config&&state.config.extraPCT)||[]).forEach(p=>s.add(p));
+  return [...s].sort((a,b)=>a.localeCompare(b,"th"));
+}
+function viewAdmin(c){
+  c.append(H("h2",{class:"section-title"},"ผู้ดูแลระบบ"));
+  c.append(H("div",{class:"section-sub"},"จัดการผู้ใช้งาน อนุมัติสมาชิก และโครงสร้าง PCT–หอผู้ป่วย"));
+  const tabs=H("div",{class:"chip-row",style:"margin-bottom:16px"});
+  [["users","👤 ผู้ใช้งาน"],["structure","🏥 โครงสร้าง PCT–หอผู้ป่วย"]].forEach(([k,l])=>
+    tabs.append(H("button",{class:"chip"+(state.admin.tab===k?" on":""),onclick:()=>{state.admin.tab=k;rerender();}},l)));
+  c.append(tabs);
+  if(state.admin.tab==="users") adminUsers(c); else adminStructure(c);
+}
+
+/* ----- users ----- */
+function adminUsers(c){
+  const units=(state.config&&state.config.units)||[];
+  const pending=state.users.filter(u=>u.status==="pending");
+  if(pending.length){
+    const pc=H("div",{class:"card",style:"margin-bottom:16px;border-left:4px solid var(--amber)"});
+    pc.append(H("div",{class:"pad",style:"padding-bottom:6px;font-weight:700"},"รออนุมัติ ("+pending.length+")"));
+    const tb=H("table"); tb.append(H("thead",{},H("tr",{},H("th",{},"ชื่อที่แสดง"),H("th",{},"ชื่อผู้ใช้"),H("th",{},"หน่วยงาน"),H("th",{style:"width:180px"},""))));
+    const tbody=H("tbody");
+    pending.forEach(u=>{ const uname=(units.find(x=>x.key===(u.units||[])[0])||{}).name||"—";
+      tbody.append(H("tr",{},H("td",{style:"font-weight:600"},u.displayName||u.username),H("td",{class:"muted"},u.username),H("td",{class:"muted"},uname),
+        H("td",{},H("div",{class:"chip-row"},
+          H("button",{class:"btn sm primary",onclick:()=>setUserStatus(u.username,"approved")},"อนุมัติ"),
+          H("button",{class:"btn sm danger",onclick:()=>setUserStatus(u.username,"rejected")},"ปฏิเสธ"))))); });
+    tb.append(tbody); pc.append(tb); c.append(pc);
+  }
+  // all users (sortable)
+  const card=H("div",{class:"card"});
+  const head=H("div",{class:"pad",style:"padding-bottom:6px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"});
+  head.append(H("div",{style:"font-weight:700"},"ผู้ใช้งานทั้งหมด ("+state.users.length+")"));
+  head.append(H("button",{class:"btn sm primary",onclick:()=>editUser(null)},"+ เพิ่มผู้ใช้"));
+  card.append(head);
+  const roleT={admin:"ผู้ดูแลระบบ",user:"ผู้รับผิดชอบ"}, statT={approved:"ใช้งานได้",pending:"รออนุมัติ",rejected:"ถูกปฏิเสธ"};
+  const cols=[{label:"ชื่อที่แสดง",key:"n",val:u=>u.displayName||u.username},{label:"ชื่อผู้ใช้",key:"u",val:u=>u.username},
+    {label:"หน่วยงาน",key:"unit",val:u=>(u.units||[]).map(k=>(units.find(x=>x.key===k)||{}).name||k).join(", ")},
+    {label:"สิทธิ์",key:"r",val:u=>u.role},{label:"สถานะ",key:"s",val:u=>u.status},{label:"",w:"90px"}];
+  const tb=H("table"); tb.append(sortableHead("admin_users",cols));
+  const tbody=H("tbody");
+  sortRows("admin_users",state.users,cols).forEach(u=>{
+    const unitNames=(u.units||[]).map(k=>(units.find(x=>x.key===k)||{}).name||k).join(", ");
+    tbody.append(H("tr",{},
+      H("td",{style:"font-weight:600"},u.displayName||u.username, u.username===state.user.username?H("span",{class:"tag",style:"margin-left:6px"},"คุณ"):null),
+      H("td",{class:"muted"},u.username),
+      H("td",{class:"muted",style:"max-width:180px"},unitNames||"—"),
+      H("td",{},H("span",{class:"pill "+(u.role==="admin"?"b":"n")},roleT[u.role]||u.role)),
+      H("td",{},H("span",{class:"pill "+(u.status==="approved"?"g":u.status==="pending"?"a":"r")},statT[u.status]||u.status||"—")),
+      H("td",{},H("button",{class:"btn sm",onclick:()=>editUser(u)},"จัดการ")))); });
+  tb.append(tbody); card.append(tb); c.append(card);
+}
+async function setUserStatus(username,status){ try{ await state.db.doc("users/"+username).update({status}); toast(status==="approved"?"อนุมัติแล้ว":"ปฏิเสธแล้ว"); }catch(e){toast("ไม่สำเร็จ: "+e.message);} }
+function editUser(u){
+  const isNew=!u; const units=(state.config&&state.config.units)||[];
+  const body=H("div",{});
+  const dn=H("input",{class:"inp",value:isNew?"":(u.displayName||"")});
+  body.append(fld("ชื่อที่แสดง",dn));
+  let unInput=null;
+  if(isNew){ unInput=H("input",{class:"inp",placeholder:"a-z, 0-9"}); body.append(fld("ชื่อผู้ใช้ (username)",unInput)); }
+  else body.append(H("div",{class:"muted",style:"font-size:12.5px;margin:-6px 0 12px"},"ชื่อผู้ใช้: "+u.username));
+  const roleSel=H("select",{class:"inp"},H("option",{value:"user"},"ผู้รับผิดชอบ"),H("option",{value:"admin"},"ผู้ดูแลระบบ")); roleSel.value=isNew?"user":u.role;
+  const statSel=H("select",{class:"inp"},H("option",{value:"approved"},"ใช้งานได้"),H("option",{value:"pending"},"รออนุมัติ"),H("option",{value:"rejected"},"ถูกปฏิเสธ")); statSel.value=isNew?"approved":(u.status||"approved");
+  const g=H("div",{style:"display:grid;grid-template-columns:1fr 1fr;gap:12px"}); g.append(fld("สิทธิ์",roleSel),fld("สถานะ",statSel)); body.append(g);
+  const pw=H("input",{class:"inp",type:"password",placeholder:isNew?"รหัสผ่าน (≥6 ตัว)":"ตั้งรหัสผ่านใหม่ (เว้นว่าง=ไม่เปลี่ยน)"});
+  body.append(fld(isNew?"รหัสผ่าน":"รีเซ็ตรหัสผ่าน",pw));
+  const unitBox=H("div",{style:"max-height:150px;overflow:auto;border:1px solid var(--line);border-radius:9px;padding:8px"}); const sel=new Set(isNew?[]:(u.units||[]));
+  units.forEach(un=>{ const cb=H("input",{type:"checkbox"}); cb.checked=sel.has(un.key); cb.onchange=()=>{cb.checked?sel.add(un.key):sel.delete(un.key);};
+    unitBox.append(H("label",{style:"display:flex;gap:8px;align-items:center;font-size:12.5px;padding:2px 0"},cb,un.name)); });
+  body.append(fld("หน่วยงานที่รับผิดชอบ",unitBox));
+  const save=H("button",{class:"btn primary"},isNew?"เพิ่มผู้ใช้":"บันทึก");
+  save.onclick=async()=>{
+    const dv=dn.value.trim(); if(!dv){toast("กรอกชื่อที่แสดง");return;}
+    let username=isNew?(unInput.value.trim().toLowerCase().replace(/[^a-z0-9_.+-]/g,"")):u.username;
+    if(isNew&&username.length<3){toast("ชื่อผู้ใช้อย่างน้อย 3 ตัว");return;}
+    if(isNew&&pw.value.length<6){toast("รหัสผ่านอย่างน้อย 6 ตัว");return;}
+    save.textContent="กำลังบันทึก…";
+    try{
+      const patch={displayName:dv,person:dv,role:roleSel.value,status:statSel.value,units:[...sel]};
+      if(pw.value){ if(pw.value.length<6){toast("รหัสผ่านอย่างน้อย 6 ตัว");save.textContent=isNew?"เพิ่มผู้ใช้":"บันทึก";return;} patch.passHash=await hashPw(username,pw.value); }
+      if(isNew){ const ex=await state.db.doc("users/"+username).get(); if(ex.exists){toast("ชื่อผู้ใช้นี้มีแล้ว");save.textContent="เพิ่มผู้ใช้";return;}
+        patch.username=username; patch.createdAt=Date.now(); await state.db.doc("users/"+username).set(patch); }
+      else await state.db.doc("users/"+username).update(patch);
+      if(username===state.user.username){ Object.assign(state.user,patch); saveSession(state.user); }
+      toast("บันทึกแล้ว"); save.closest(".modal-bg").remove();
+    }catch(e){ toast("ไม่สำเร็จ: "+e.message); save.textContent=isNew?"เพิ่มผู้ใช้":"บันทึก"; }
+  };
+  const foot=[H("button",{class:"btn",onclick:e=>e.target.closest(".modal-bg").remove()},"ปิด")];
+  if(!isNew && u.username!==state.user.username) foot.push(H("button",{class:"btn danger",onclick:()=>confirmModal(H("div",{},"ลบผู้ใช้ \""+(u.displayName||u.username)+"\" ?"),async()=>{ try{ await state.db.doc("users/"+u.username).delete(); toast("ลบแล้ว"); const bg=document.querySelector(".modal-bg"); if(bg)bg.remove(); }catch(e){toast("ไม่สำเร็จ");} })},"ลบผู้ใช้"));
+  foot.push(save);
+  modal(isNew?"เพิ่มผู้ใช้ใหม่":"จัดการผู้ใช้ — "+(u.displayName||u.username),body,foot);
+}
+
+/* ----- structure: PCT + wards ----- */
+function adminStructure(c){
+  // cross-PCT indicators
+  const allpct=state.indArr.filter(i=>i.allPCT);
+  const info=H("div",{class:"card pad",style:"margin-bottom:16px"});
+  info.append(H("div",{style:"font-weight:700;margin-bottom:4px"},"หอผู้ป่วย = หน่วยเก็บข้อมูลย่อยสุด"));
+  info.append(H("div",{class:"muted",style:"font-size:12.5px"},"แต่ละหอผู้ป่วยอยู่ภายใต้ 1 PCT • หัวหน้าหอผู้ป่วย = ผู้รับผิดชอบรองลำดับ 1 (ตรวจสอบ) • ผู้เก็บข้อมูลหลัก = ผู้รับผิดชอบรองลำดับ 2"));
+  c.append(info);
+  // wards table by PCT (sortable)
+  const card=H("div",{class:"card"});
+  const head=H("div",{class:"pad",style:"padding-bottom:6px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"});
+  head.append(H("div",{style:"font-weight:700"},"หอผู้ป่วย / หน่วยเก็บข้อมูล ("+state.wards.length+")"));
+  head.append(H("button",{class:"btn sm primary",onclick:()=>editWard(null)},"+ เพิ่มหอผู้ป่วย"));
+  card.append(head);
+  const cols=[{label:"หอผู้ป่วย",key:"n",val:w=>w.name},{label:"ภายใต้ PCT",key:"p",val:w=>w.pct||""},
+    {label:"หัวหน้าหอ (รอง 1)",key:"h",val:w=>w.head||""},{label:"ผู้เก็บข้อมูล (รอง 2)",key:"co",val:w=>w.collector||""},{label:"",w:"90px"}];
+  const tb=H("table"); tb.append(sortableHead("admin_wards",cols));
+  const tbody=H("tbody");
+  if(!state.wards.length) tbody.append(H("tr",{},H("td",{colspan:5,class:"muted",style:"text-align:center;padding:22px"},"ยังไม่มีหอผู้ป่วย — กด “เพิ่มหอผู้ป่วย” เพื่อเริ่ม")));
+  sortRows("admin_wards",state.wards,cols).forEach(w=>{
+    tbody.append(H("tr",{},H("td",{style:"font-weight:600"},w.name),H("td",{},H("span",{class:"tag"},w.pct||"—")),
+      H("td",{class:"muted"},w.head||"—"),H("td",{class:"muted"},w.collector||"—"),
+      H("td",{},H("button",{class:"btn sm",onclick:()=>editWard(w)},"แก้ไข")))); });
+  tb.append(tbody); card.append(tb); c.append(card);
+  // manage PCT list (add extra PCT)
+  const pc=H("div",{class:"card pad",style:"margin-top:16px"});
+  pc.append(H("div",{style:"font-weight:700;margin-bottom:8px"},"รายการ PCT"));
+  pc.append(H("div",{class:"chip-row",style:"margin-bottom:10px"}, pctList().map(p=>H("span",{class:"chip on"},p))));
+  const npct=H("input",{class:"inp",style:"max-width:280px;display:inline-block",placeholder:"เพิ่ม PCT ใหม่ เช่น PCT จิตเวช"});
+  const addp=H("button",{class:"btn sm",style:"margin-left:8px"},"+ เพิ่ม PCT");
+  addp.onclick=async()=>{ const v=npct.value.trim(); if(!v)return; const extra=((state.config&&state.config.extraPCT)||[]).concat([v]);
+    try{ await state.db.doc("meta/config").set({extraPCT:extra},{merge:true}); state.config=state.config||{}; state.config.extraPCT=extra; toast("เพิ่ม PCT แล้ว"); rerender(); }catch(e){toast("ไม่สำเร็จ: "+e.message);} };
+  pc.append(H("div",{},npct,addp)); c.append(pc);
+}
+function editWard(w){
+  const isNew=!w; const body=H("div",{});
+  const nm=H("input",{class:"inp",value:isNew?"":(w.name||"")}); body.append(fld("ชื่อหอผู้ป่วย / หน่วย",nm));
+  const pctSel=H("select",{class:"inp"}); pctSel.append(H("option",{value:""},"— เลือก PCT —")); pctList().forEach(p=>pctSel.append(H("option",{value:p},p))); pctSel.value=isNew?"":(w.pct||"");
+  body.append(fld("อยู่ภายใต้ PCT",pctSel));
+  const persons=[...new Set(state.users.map(u=>u.displayName).filter(Boolean))];
+  const mkPersonField=(label,val)=>{ const inp=H("input",{class:"inp",value:val||"",list:"persons_dl",placeholder:"พิมพ์ชื่อ หรือเลือกจากรายชื่อผู้ใช้"}); return {node:fld(label,inp),inp}; };
+  const h=mkPersonField("หัวหน้าหอผู้ป่วย — ผู้รับผิดชอบรอง 1",isNew?"":w.head);
+  const co=mkPersonField("ผู้เก็บข้อมูลหลัก — ผู้รับผิดชอบรอง 2",isNew?"":w.collector);
+  body.append(h.node,co.node);
+  const dl=H("datalist",{id:"persons_dl"}); persons.forEach(p=>dl.append(H("option",{value:p}))); body.append(dl);
+  const save=H("button",{class:"btn primary"},isNew?"เพิ่มหอผู้ป่วย":"บันทึก");
+  save.onclick=async()=>{ if(!nm.value.trim()){toast("กรอกชื่อหอผู้ป่วย");return;}
+    const data={name:nm.value.trim(),pct:pctSel.value,head:h.inp.value.trim(),collector:co.inp.value.trim()};
+    try{ if(isNew){ data.createdAt=Date.now(); await state.db.collection("wards").add(data); } else await state.db.doc("wards/"+w.id).update(data);
+      toast("บันทึกแล้ว"); save.closest(".modal-bg").remove(); }catch(e){toast("ไม่สำเร็จ: "+e.message);} };
+  const foot=[H("button",{class:"btn",onclick:e=>e.target.closest(".modal-bg").remove()},"ปิด")];
+  if(!isNew) foot.push(H("button",{class:"btn danger",onclick:()=>confirmModal(H("div",{},"ลบหอผู้ป่วย \""+w.name+"\" ?"),async()=>{ try{ await state.db.doc("wards/"+w.id).delete(); toast("ลบแล้ว"); const bg=document.querySelector(".modal-bg"); if(bg)bg.remove(); }catch(e){toast("ไม่สำเร็จ");} })},"ลบ"));
+  foot.push(save);
+  modal(isNew?"เพิ่มหอผู้ป่วย":"แก้ไขหอผู้ป่วย",body,foot);
 }
 
 /* ================= start ================= */
