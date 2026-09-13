@@ -1,0 +1,1045 @@
+<title>KPI รพ.ชัยนาทนเรนทร</title>
+<style>
+:root{
+  --bg:#f4f6fb; --panel:#ffffff; --panel2:#f8fafc; --ink:#0f2540; --muted:#607089;
+  --line:#e3e9f2; --brand:#0b6fb8; --brand2:#0a5aa0; --brand-soft:#e7f2fb;
+  --green:#1f9d6b; --green-soft:#e3f6ee; --red:#d64545; --red-soft:#fbe6e6;
+  --amber:#c98a12; --amber-soft:#fbf1da; --grey:#9aa8bd; --white-slice:#dfe6f0;
+  --sidebar:#0e2a4a; --sidebar-ink:#cdddf0; --sidebar-active:#0b6fb8;
+  --shadow:0 1px 2px rgba(16,37,64,.06),0 6px 20px rgba(16,37,64,.06);
+  --radius:14px;
+}
+:root:not([data-theme="light"]){}
+@media (prefers-color-scheme:dark){
+ :root:not([data-theme="light"]){
+  --bg:#0b1220; --panel:#111b2e; --panel2:#0e1626; --ink:#e8eef7; --muted:#93a3bc;
+  --line:#22314b; --brand:#3b98e0; --brand2:#5aa9e6; --brand-soft:#132a41;
+  --green:#31b781; --green-soft:#10261e; --red:#e56767; --red-soft:#2a1414;
+  --amber:#e0a83a; --amber-soft:#2a2010; --grey:#6b7c96; --white-slice:#26324a;
+  --sidebar:#0a1424; --sidebar-ink:#b8cadf; --sidebar-active:#2c72ad;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 26px rgba(0,0,0,.35);
+ }
+}
+:root[data-theme="dark"]{
+  --bg:#0b1220; --panel:#111b2e; --panel2:#0e1626; --ink:#e8eef7; --muted:#93a3bc;
+  --line:#22314b; --brand:#3b98e0; --brand2:#5aa9e6; --brand-soft:#132a41;
+  --green:#31b781; --green-soft:#10261e; --red:#e56767; --red-soft:#2a1414;
+  --amber:#e0a83a; --amber-soft:#2a2010; --grey:#6b7c96; --white-slice:#26324a;
+  --sidebar:#0a1424; --sidebar-ink:#b8cadf; --sidebar-active:#2c72ad;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 26px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+ font-family:"Sarabun","Noto Sans Thai",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+ font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{margin:0;font-weight:700;line-height:1.25}
+a{color:var(--brand);text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:14px}
+.hide{display:none!important}
+
+/* Layout */
+#app{display:flex;min-height:100vh}
+.sidebar{width:248px;flex:0 0 248px;background:var(--sidebar);color:var(--sidebar-ink);
+ display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.sb-brand{padding:18px 18px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-brand .logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#0b6fb8,#12a6c9);
+ display:grid;place-items:center;color:#fff;font-weight:800;font-size:16px;margin-bottom:9px}
+.sb-brand .t1{color:#fff;font-size:15px;font-weight:800;letter-spacing:.2px}
+.sb-brand .t2{color:#9db8d6;font-size:11.5px;margin-top:2px}
+.sb-nav{padding:10px 10px;flex:1;overflow:auto}
+.nav-item{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:10px;
+ color:var(--sidebar-ink);font-weight:600;font-size:14px;margin-bottom:3px;border:0;background:none;width:100%;text-align:left}
+.nav-item .ic{width:20px;text-align:center;font-size:16px;opacity:.9}
+.nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav-item.active{background:var(--sidebar-active);color:#fff;box-shadow:0 3px 10px rgba(0,0,0,.25)}
+.sb-user{padding:12px;border-top:1px solid rgba(255,255,255,.08);font-size:12.5px}
+.sb-user .who{color:#fff;font-weight:700}
+.sb-user .role{color:#9db8d6}
+.sb-user button{margin-top:8px;width:100%;background:rgba(255,255,255,.08);color:#dbe8f7;
+ border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:7px}
+.sb-user button:hover{background:rgba(255,255,255,.15)}
+
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{background:linear-gradient(90deg,var(--brand),#0e86c6);color:#fff;padding:16px 26px;
+ display:flex;align-items:center;gap:14px;box-shadow:0 2px 12px rgba(11,111,184,.25)}
+.topbar .burger{display:none;background:rgba(255,255,255,.15);border:0;color:#fff;width:38px;height:38px;border-radius:9px;font-size:18px}
+.topbar h1{font-size:18px}
+.topbar .sub{font-size:12.5px;opacity:.9;margin-top:1px}
+.content{padding:24px 26px 60px;max-width:1240px;width:100%;margin:0 auto}
+
+/* Cards & bits */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.pad{padding:18px 20px}
+.grid{display:grid;gap:16px}
+.section-title{font-size:16px;margin-bottom:4px}
+.section-sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:600}
+.pill.g{background:var(--green-soft);color:var(--green)} .pill.r{background:var(--red-soft);color:var(--red)}
+.pill.a{background:var(--amber-soft);color:var(--amber)} .pill.n{background:var(--panel2);color:var(--muted);border:1px solid var(--line)}
+.pill.b{background:var(--brand-soft);color:var(--brand2)}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:9px;padding:9px 15px;font-weight:600}
+.btn:hover{border-color:var(--brand);color:var(--brand)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand2);color:#fff}
+.btn.sm{padding:6px 11px;font-size:12.5px;border-radius:8px}
+.btn.danger{color:var(--red);border-color:var(--red-soft)} .btn.danger:hover{background:var(--red-soft)}
+.stat{display:flex;flex-direction:column;gap:3px}
+.stat .n{font-size:26px;font-weight:800;line-height:1}
+.stat .l{color:var(--muted);font-size:12.5px}
+label.fld{display:block;margin-bottom:12px}
+label.fld .lb{font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:5px;display:block}
+.inp{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--ink)}
+.inp:focus{outline:none;border-color:var(--brand);background:var(--panel)}
+select.inp{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23607089' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>");background-repeat:no-repeat;background-position:right 12px center}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px;background:var(--panel2);position:sticky;top:0}
+tr:hover td{background:var(--panel2)}
+.tag{font-size:11px;padding:1px 7px;border-radius:6px;background:var(--brand-soft);color:var(--brand2);font-weight:600;white-space:nowrap}
+.chip-row{display:flex;flex-wrap:wrap;gap:7px}
+.chip{padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:var(--panel);font-weight:600;font-size:13px;color:var(--muted)}
+.chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.muted{color:var(--muted)}
+.mono-num{font-variant-numeric:tabular-nums}
+
+/* login */
+.auth-wrap{position:fixed;inset:0;background:linear-gradient(135deg,#0b3f6b,#0b6fb8 60%,#12a6c9);
+ display:grid;place-items:center;padding:20px;z-index:50;overflow:auto}
+.auth-card{background:var(--panel);border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);
+ width:100%;max-width:420px;padding:30px 30px 26px}
+.auth-card .logo{width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,#0b6fb8,#12a6c9);
+ display:grid;place-items:center;color:#fff;font-weight:800;font-size:22px;margin:0 auto 14px}
+.auth-card h2{text-align:center;font-size:20px}
+.auth-card .hsub{text-align:center;color:var(--muted);font-size:13px;margin:5px 0 20px}
+.auth-tabs{display:flex;gap:6px;background:var(--panel2);border-radius:11px;padding:5px;margin-bottom:18px}
+.auth-tabs button{flex:1;border:0;background:none;padding:9px;border-radius:8px;font-weight:700;color:var(--muted)}
+.auth-tabs button.on{background:var(--panel);color:var(--brand);box-shadow:var(--shadow)}
+.err{background:var(--red-soft);color:var(--red);padding:9px 12px;border-radius:9px;font-size:13px;margin-bottom:12px;font-weight:600}
+.ok{background:var(--green-soft);color:var(--green);padding:9px 12px;border-radius:9px;font-size:13px;margin-bottom:12px;font-weight:600}
+
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(9,20,36,.55);display:grid;place-items:center;z-index:60;padding:18px;overflow:auto}
+.modal{background:var(--panel);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.4);width:100%;max-width:640px;max-height:92vh;overflow:auto}
+.modal .mhead{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--panel)}
+.modal .mbody{padding:20px 22px}
+.modal .mfoot{padding:14px 22px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:var(--panel)}
+.x{border:0;background:var(--panel2);width:32px;height:32px;border-radius:8px;font-size:16px;color:var(--muted)}
+
+/* donut */
+.donut-wrap{display:flex;align-items:center;gap:18px}
+.donut{position:relative;width:150px;height:150px;flex:0 0 150px}
+.donut .center{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.donut .center .p{font-size:26px;font-weight:800}
+.donut .center .s{font-size:11px;color:var(--muted)}
+.legend{font-size:12.5px}
+.legend div{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.legend .sw{width:11px;height:11px;border-radius:3px}
+
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);
+ padding:11px 18px;border-radius:10px;font-weight:600;font-size:13px;z-index:80;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.loading{display:grid;place-items:center;padding:60px;color:var(--muted)}
+.spin{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--brand);border-radius:50%;animation:sp 1s linear infinite;margin-bottom:12px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.bar{height:9px;border-radius:6px;background:var(--panel2);overflow:hidden;border:1px solid var(--line)}
+.bar>i{display:block;height:100%}
+details.def{margin-top:6px} details.def summary{cursor:pointer;color:var(--brand);font-size:12px;font-weight:600}
+
+@media (max-width:860px){
+ .sidebar{position:fixed;left:0;top:0;z-index:40;transform:translateX(-100%);transition:transform .22s}
+ .sidebar.open{transform:none}
+ .topbar .burger{display:block}
+ .content{padding:16px 14px 50px}
+ .donut-wrap{flex-direction:column;align-items:flex-start}
+}
+@media print{
+ .sidebar,.topbar,.no-print{display:none!important}
+ .content{max-width:none;padding:0}
+ .card{box-shadow:none;border:1px solid #ccc;break-inside:avoid}
+ body{background:#fff}
+}
+</style>
+
+<div id="root">
+  <div class="loading"><div class="spin"></div><div>กำลังโหลดระบบ…</div></div>
+</div>
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+
+<!-- Firebase SDK (v10 compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+<script>
+/* ================= KPI Dashboard — โรงพยาบาลชัยนาทนเรนทร ================= */
+"use strict";
+
+/* ==========================================================================
+   ⬇️⬇️⬇️  วางค่า Firebase config ของโครงการคุณตรงนี้  ⬇️⬇️⬇️
+   (คัดลอกจาก Firebase Console → Project settings → Your apps → SDK setup)
+   ========================================================================== */
+const firebaseConfig = {
+    apiKey: "AIzaSyBUYT_vHxEWBhAYNc8mjcamba2bbzTF-bE",
+    authDomain: "kpi-jnh.firebaseapp.com",
+    projectId: "kpi-jnh",
+    storageBucket: "kpi-jnh.firebasestorage.app",
+    messagingSenderId: "693292827396",
+    appId: "1:693292827396:web:bc6d768355a95942ce4651",
+    measurementId: "G-L24GXGE8MV"
+  };
+/* ⬆️⬆️⬆️  วางค่าด้านบนแล้วบันทึกไฟล์  ⬆️⬆️⬆️ */
+const FIREBASE_READY = !String(firebaseConfig.apiKey).startsWith("PASTE");
+const H = (tag, attrs={}, ...kids)=>{ const e=document.createElement(tag);
+  for(const k in attrs){ if(k==="class")e.className=attrs[k]; else if(k==="html")e.innerHTML=attrs[k];
+    else if(k.startsWith("on")&&typeof attrs[k]==="function")e.addEventListener(k.slice(2),attrs[k]);
+    else if(attrs[k]!=null&&attrs[k]!==false)e.setAttribute(k,attrs[k]); }
+  for(let kid of kids.flat()){ if(kid==null||kid===false)continue; e.append(kid.nodeType?kid:document.createTextNode(kid)); }
+  return e; };
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function toast(msg){ const t=H("div",{class:"toast"},msg); $("#toast-root").append(t); setTimeout(()=>t.remove(),2600); }
+
+const state={ db:null, user:null, config:null, ind:new Map(), indArr:[], unsub:null, view:"home",
+  offline:false, seeding:false };
+
+/* ---------- auth helpers (Firebase) ---------- */
+const EMAIL_DOMAIN="cnhkpi.local";
+const uname2email=u=>String(u).trim().toLowerCase()+"@"+EMAIL_DOMAIN;
+function saveSession(){}  // Firebase persists the session itself
+function authErr(e){
+  const m={"auth/invalid-credential":"ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง",
+    "auth/wrong-password":"รหัสผ่านไม่ถูกต้อง","auth/user-not-found":"ไม่พบชื่อผู้ใช้นี้",
+    "auth/invalid-login-credentials":"ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง",
+    "auth/email-already-in-use":"ชื่อผู้ใช้นี้มีผู้ใช้แล้ว","auth/weak-password":"รหัสผ่านสั้นเกินไป (อย่างน้อย 6 ตัว)",
+    "auth/too-many-requests":"พยายามหลายครั้งเกินไป กรุณารอสักครู่","auth/network-request-failed":"เชื่อมต่อเครือข่ายไม่ได้"};
+  return m[e&&e.code]||("เกิดข้อผิดพลาด: "+(e&&e.message||e));
+}
+
+/* ---------- status / value logic ---------- */
+function parseTarget(t){
+  if(!t) return null;
+  let s=String(t).replace(/ร้อยละ/g,"").replace(/[,\s%]/g,"");
+  s=s.replace(/≥|>=|ไม่น้อยกว่า|มากกว่าหรือเท่ากับ/g,">=").replace(/≤|<=|ไม่เกิน|ไม่มากกว่า|น้อยกว่าหรือเท่ากับ/g,"<=")
+     .replace(/มากกว่า/g,">").replace(/น้อยกว่า/g,"<");
+  const m=s.match(/(>=|<=|>|<|=)?\s*(-?\d+(?:\.\d+)?)/);
+  if(!m) return null;
+  return { op:m[1]||">=", num:parseFloat(m[2]) };
+}
+function computeValue(ind,res){
+  if(!res) return null;
+  if(res.value!=null && res.value!=="") return parseFloat(res.value);
+  const n=parseFloat(res.num), d=parseFloat(res.den);
+  const pct=/ร้อยละ|อัตรา|%/.test(ind.unitType||"");
+  if(!isNaN(n)&&!isNaN(d)&&d!==0) return pct ? (n/d*100) : (n/d);
+  if(!isNaN(n)&&(isNaN(d)||res.den===""||res.den==null)) return n;
+  return null;
+}
+function statusOf(ind,res){
+  if(!res || (res.num==null&&res.den==null&&(res.value==null||res.value==="")) ) return "none";
+  const v=computeValue(ind,res); if(v==null||isNaN(v)) return "recorded";
+  const tg=parseTarget(ind.target); if(!tg) return "recorded";
+  const pass = tg.op===">="? v>=tg.num : tg.op==="<="? v<=tg.num : tg.op===">"? v>tg.num
+    : tg.op==="<"? v<tg.num : Math.abs(v-tg.num)<1e-9;
+  return pass?"pass":"fail";
+}
+const STATUS_META={pass:{c:"g",t:"ผ่านเกณฑ์"},fail:{c:"r",t:"ไม่ผ่านเกณฑ์"},recorded:{c:"a",t:"บันทึกแล้ว"},none:{c:"n",t:"ยังไม่บันทึก"}};
+
+/* ---------- period helpers ---------- */
+function curBEYear(){ return new Date().getFullYear()+543; }
+const TH_MONTH=["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+function periodKey(mode,y,sub){ // y = BE year
+  if(mode==="month") return y+"-M"+String(sub).padStart(2,"0");
+  if(mode==="quarter") return y+"-Q"+sub;
+  return y+"-Y";
+}
+function periodLabel(mode,y,sub){
+  if(mode==="month") return TH_MONTH[sub-1]+" "+y;
+  if(mode==="quarter") return "ไตรมาส "+sub+"/"+y;
+  return "ปี "+y;
+}
+
+/* ================= boot (Firebase) ================= */
+async function boot(){
+  if(!window.firebase || !FIREBASE_READY){ state.offline=true; renderAuth(); return; }
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    state.db=firebase.firestore(); state.auth=firebase.auth();
+  }catch(e){ console.error(e); state.offline=true; renderAuth(); return; }
+  // public config (meta is world-readable) for the register unit dropdown
+  try{ const c=await state.db.doc("meta/config").get(); if(c.exists) state.config=c.data(); }catch(e){}
+  state.auth.onAuthStateChanged(async fbUser=>{
+    if(fbUser){
+      try{
+        let snap=await state.db.doc("users/"+fbUser.uid).get();
+        if(!snap.exists){ // may be mid-registration — retry once before falling back
+          await new Promise(r=>setTimeout(r,700));
+          snap=await state.db.doc("users/"+fbUser.uid).get();
+        }
+        if(snap.exists){ state.user={uid:fbUser.uid,...snap.data()}; }
+        else { const un=(fbUser.email||"").split("@")[0];
+          state.user={uid:fbUser.uid,username:un,displayName:un,role:"user",units:[],person:un,_incomplete:true}; }
+      }catch(e){ const un=(fbUser.email||"").split("@")[0];
+        state.user={uid:fbUser.uid,username:un,displayName:un,role:"user",units:[],person:un}; }
+      if(!state.config){ try{ const c=await state.db.doc("meta/config").get(); if(c.exists) state.config=c.data(); }catch(e){} }
+      subscribeIndicators();
+      renderApp();
+    } else {
+      state.user=null; if(state.unsub){state.unsub();state.unsub=null;} renderAuth();
+    }
+  });
+}
+function subscribeIndicators(){
+  if(!state.db||state.unsub) return;
+  state.unsub = state.db.collection("indicators").onSnapshot(snap=>{
+    state.ind=new Map(); snap.docs.forEach(d=>{ if(d.exists) state.ind.set(d.id,{id:d.id,...d.data()}); });
+    state.indArr=[...state.ind.values()];
+    if(state.user) rerender();
+  }, err=>{ console.warn("ind sub",err.code); });
+}
+
+/* ================= seeding ================= */
+async function needsSeed(){ if(!state.db) return false;
+  try{ const c=await state.db.doc("meta/config").get(); return !c.exists; }catch(e){ return false; } }
+async function runSeed(btn){
+  if(state.seeding) return; state.seeding=true;
+  const set=(t)=>{ if(btn) btn.textContent=t; };
+  try{
+    set("กำลังดึงข้อมูล…");
+    const res=await fetch("appseed.json",{cache:"no-store"});
+    if(!res.ok) throw new Error("fetch "+res.status);
+    const seed=await res.json();
+    await state.db.doc("meta/config").set({...seed.config, seededAt:new Date().toISOString(), seededBy:state.user?state.user.username:"admin"});
+    state.config=seed.config;
+    let i=0; const docs=seed.indicators; const total=docs.length;
+    for(const d of docs){
+      await state.db.doc("indicators/"+d.id).set({...d, results:{}, createdAt:Date.now()});
+      i++; if(i%15===0){ set("นำเข้า "+i+"/"+total+" …"); await new Promise(r=>setTimeout(r,40)); }
+    }
+    set("เสร็จสิ้น ✓"); toast("นำเข้าตัวชี้วัด "+total+" รายการเรียบร้อย");
+    state.seeding=false; return true;
+  }catch(e){ console.error(e); toast("นำเข้าข้อมูลไม่สำเร็จ: "+e.message); set("ลองใหม่"); state.seeding=false; return false; }
+}
+
+/* ================= AUTH UI ================= */
+function renderAuth(){
+  $("#root").innerHTML="";
+  let mode="login", err="", ok="";
+  const wrap=H("div",{class:"auth-wrap"});
+  function draw(){
+    wrap.innerHTML="";
+    const card=H("div",{class:"auth-card"});
+    card.append(H("div",{class:"logo"},"K"));
+    card.append(H("h2",{},"KPI โรงพยาบาลชัยนาทนเรนทร"));
+    card.append(H("div",{class:"hsub"},"ระบบติดตามตัวชี้วัดคุณภาพโรงพยาบาล"));
+    if(state.offline){ card.append(H("div",{class:"err"},"ยังไม่ได้ตั้งค่า Firebase — กรุณาวางค่า firebaseConfig ในไฟล์ index.html (ดูขั้นตอนในคู่มือ README) แล้วเปิดหน้านี้ใหม่")); wrap.append(card); return; }
+    const tabs=H("div",{class:"auth-tabs"},
+      H("button",{class:mode==="login"?"on":"",onclick:()=>{mode="login";err=ok="";draw();}},"เข้าสู่ระบบ"),
+      H("button",{class:mode==="register"?"on":"",onclick:()=>{mode="register";err=ok="";draw();}},"สมัครสมาชิก"));
+    card.append(tabs);
+    if(err) card.append(H("div",{class:"err"},err));
+    if(ok) card.append(H("div",{class:"ok"},ok));
+    if(mode==="login"){
+      const u=H("input",{class:"inp",placeholder:"ชื่อผู้ใช้ (username)",autocomplete:"username"});
+      const p=H("input",{class:"inp",type:"password",placeholder:"รหัสผ่าน",autocomplete:"current-password"});
+      card.append(H("label",{class:"fld"},H("span",{class:"lb"},"ชื่อผู้ใช้"),u));
+      card.append(H("label",{class:"fld"},H("span",{class:"lb"},"รหัสผ่าน"),p));
+      const go=H("button",{class:"btn primary",style:"width:100%;margin-top:4px"},"เข้าสู่ระบบ");
+      const doLogin=async()=>{ err=ok=""; const un=u.value.trim().toLowerCase();
+        if(!un||!p.value){ err="กรอกชื่อผู้ใช้และรหัสผ่าน"; return draw(); }
+        go.textContent="กำลังตรวจสอบ…";
+        try{ await state.auth.signInWithEmailAndPassword(uname2email(un),p.value); /* onAuthStateChanged จะพาเข้าระบบ */ }
+        catch(e){ err=authErr(e); draw(); } };
+      go.onclick=doLogin; p.addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
+      card.append(go);
+    } else {
+      const dn=H("input",{class:"inp",placeholder:"ชื่อ-สกุล / ชื่อที่แสดง"});
+      const u=H("input",{class:"inp",placeholder:"ชื่อผู้ใช้ (ภาษาอังกฤษ/ตัวเลข)"});
+      const p=H("input",{class:"inp",type:"password",placeholder:"รหัสผ่าน (อย่างน้อย 6 ตัว)"});
+      const unitSel=H("select",{class:"inp"}); unitSel.append(H("option",{value:""},"— เลือกหน่วยงานของท่าน —"));
+      (state.config?state.config.units:[]).forEach(un=>unitSel.append(H("option",{value:un.key},un.name)));
+      const code=H("input",{class:"inp",placeholder:"รหัสผู้ดูแลระบบ (ถ้ามี) — ไม่มีให้เว้นว่าง"});
+      card.append(H("label",{class:"fld"},H("span",{class:"lb"},"ชื่อที่แสดง"),dn));
+      card.append(H("label",{class:"fld"},H("span",{class:"lb"},"ชื่อผู้ใช้"),u));
+      card.append(H("label",{class:"fld"},H("span",{class:"lb"},"รหัสผ่าน"),p));
+      card.append(H("label",{class:"fld"},H("span",{class:"lb"},"หน่วยงาน"),unitSel));
+      card.append(H("label",{class:"fld"},H("span",{class:"lb"},"สิทธิ์ผู้ดูแล (ไม่บังคับ)"),code));
+      const go=H("button",{class:"btn primary",style:"width:100%;margin-top:4px"},"สมัครสมาชิก");
+      go.onclick=async()=>{ err=ok=""; const un=u.value.trim().toLowerCase().replace(/[^a-z0-9_.+-]/g,"");
+        if(!dn.value.trim()){err="กรอกชื่อที่แสดง";return draw();}
+        if(un.length<3){err="ชื่อผู้ใช้อย่างน้อย 3 ตัว (a-z,0-9)";return draw();}
+        if(p.value.length<6){err="รหัสผ่านอย่างน้อย 6 ตัว";return draw();}
+        go.textContent="กำลังสมัคร…";
+        try{
+          const cred=await state.auth.createUserWithEmailAndPassword(uname2email(un),p.value);
+          const uid=cred.user.uid;
+          let isAdmin=false;
+          if(code.value.trim()==="CNH-ADMIN") isAdmin=true;
+          else { try{ const all=await state.db.collection("users").limit(1).get(); if(all.empty) isAdmin=true; }catch(e){} }
+          const unit=unitSel.value;
+          const doc={username:un,displayName:dn.value.trim(),role:isAdmin?"admin":"user",
+            units:unit?[unit]:[], person:dn.value.trim(), createdAt:Date.now()};
+          await state.db.doc("users/"+uid).set(doc);
+          state.user={uid,...doc}; renderApp();  // onAuthStateChanged will also fire
+        }catch(e){ err=authErr(e); draw(); } };
+      card.append(go);
+      card.append(H("div",{class:"muted",style:"font-size:11.5px;margin-top:12px;text-align:center"},
+        "ผู้สมัครคนแรกจะเป็นผู้ดูแลระบบโดยอัตโนมัติ"));
+    }
+    wrap.append(card);
+  }
+  draw(); $("#root").append(wrap);
+}
+
+/* ================= APP SHELL ================= */
+const NAV=[
+  {id:"home",ic:"🏠",t:"หน้าหลัก"},
+  {id:"report",ic:"📊",t:"รายงานผล KPI"},
+  {id:"record",ic:"📝",t:"บันทึกผล KPI"},
+  {id:"edit",ic:"⚙️",t:"แก้ไขตัวชี้วัด"},
+  {id:"owners",ic:"👥",t:"ผู้รับผิดชอบตัวชี้วัด"},
+];
+function renderApp(){
+  $("#root").innerHTML="";
+  const sb=H("div",{class:"sidebar",id:"sidebar"});
+  sb.append(H("div",{class:"sb-brand"},
+    H("div",{class:"logo"},"K"),
+    H("div",{class:"t1"},"KPI Dashboard"),
+    H("div",{class:"t2"},(state.config&&state.config.hospital)||"โรงพยาบาลชัยนาทนเรนทร")));
+  const nav=H("div",{class:"sb-nav"});
+  NAV.forEach(n=>nav.append(H("button",{class:"nav-item"+(state.view===n.id?" active":""),onclick:()=>go(n.id)},
+    H("span",{class:"ic"},n.ic),H("span",{},n.t))));
+  sb.append(nav);
+  const u=state.user;
+  const su=H("div",{class:"sb-user"});
+  su.append(H("div",{class:"who"},u.displayName||u.username));
+  su.append(H("div",{class:"role"},(u.role==="admin"?"ผู้ดูแลระบบ":"ผู้รับผิดชอบตัวชี้วัด")));
+  su.append(H("button",{onclick:openProfile},"โปรไฟล์ / เปลี่ยนรหัสผ่าน"));
+  su.append(H("button",{onclick:logout},"ออกจากระบบ"));
+  sb.append(su);
+
+  const main=H("div",{class:"main"});
+  const tb=H("div",{class:"topbar"});
+  tb.append(H("button",{class:"burger",onclick:()=>$("#sidebar").classList.toggle("open")},"☰"));
+  const th=H("div",{},H("h1",{},"KPI โรงพยาบาลชัยนาทนเรนทร"),
+    H("div",{class:"sub"},"ภาพรวมตัวชี้วัดคุณภาพโรงพยาบาล • ปีงบประมาณ "+curBEYear()));
+  tb.append(th);
+  main.append(tb);
+  const content=H("div",{class:"content",id:"content"});
+  main.append(content);
+  $("#root").append(H("div",{id:"app"},sb,main));
+  routeRender();
+}
+function go(v){ state.view=v; $("#sidebar")&&$("#sidebar").classList.remove("open"); renderApp(); }
+function rerender(){ if($("#content")) routeRender(); }
+function logout(){ try{ state.auth.signOut(); }catch(e){} }
+
+function routeRender(){
+  const c=$("#content"); if(!c) return; c.innerHTML="";
+  // first-run seed prompt for admin
+  if(state.user.role==="admin" && state.indArr.length===0 && !state.seeding){
+    if(state.config==null){
+      const card=H("div",{class:"card pad"});
+      card.append(H("h2",{class:"section-title"},"เริ่มต้นใช้งาน — นำเข้าตัวชี้วัดตั้งต้น"));
+      card.append(H("div",{class:"section-sub"},"ยังไม่มีข้อมูลในระบบ กดปุ่มด้านล่างเพื่อนำเข้าตัวชี้วัด 390 รายการจากไฟล์ Excel ที่เตรียมไว้ (ทำครั้งเดียว)"));
+      const b=H("button",{class:"btn primary"},"นำเข้าตัวชี้วัดตั้งต้น");
+      b.onclick=async()=>{ b.disabled=true; const okk=await runSeed(b); if(okk){ setTimeout(()=>routeRender(),400);} else b.disabled=false; };
+      card.append(b); c.append(card); return;
+    }
+  }
+  const V={home:viewHome,report:viewReport,record:viewRecord,edit:viewEdit,owners:viewOwners}[state.view]||viewHome;
+  try{ V(c); }catch(e){ console.error(e); c.append(H("div",{class:"card pad"},"เกิดข้อผิดพลาดในการแสดงผล: "+e.message)); }
+}
+
+/* ---------- shared helpers ---------- */
+function ownsIndicator(ind){
+  const u=state.user; if(!u) return false; if(u.role==="admin") return true;
+  const me=(u.person||u.displayName||"").trim();
+  if((ind.owners||[]).some(o=>o&&me&&o.trim()===me)) return true;
+  if((ind.secondary||[]).some(o=>o&&me&&o.trim()===me)) return true;
+  if((u.units||[]).includes(ind.unit)) return true;
+  if((ind.relatedUnits||[]).some(r=>(u.units||[]).includes(r))) return true;
+  return false;
+}
+function domainMeta(d){ return {pct:{t:"PCT (ทีมนำทางคลินิก)",c:"#0b6fb8"},support:{t:"งานสนับสนุน",c:"#12a6c9"},backoffice:{t:"Back office",c:"#7b61c9"}}[d]||{t:d,c:"#607089"}; }
+
+function modal(title, bodyNode, footNodes){
+  const bg=H("div",{class:"modal-bg",onclick:e=>{if(e.target===bg)bg.remove();}});
+  const m=H("div",{class:"modal"});
+  m.append(H("div",{class:"mhead"},H("h3",{},title),H("button",{class:"x",onclick:()=>bg.remove()},"✕")));
+  m.append(H("div",{class:"mbody"},bodyNode));
+  if(footNodes) m.append(H("div",{class:"mfoot"},footNodes));
+  bg.append(m); $("#modal-root").append(bg); return bg;
+}
+function openProfile(){
+  const u=state.user;
+  const body=H("div",{});
+  body.append(H("label",{class:"fld"},H("span",{class:"lb"},"ชื่อที่แสดง"),
+    (()=>{const i=H("input",{class:"inp",value:u.displayName||""});body._dn=i;return i;})()));
+  body.append(H("div",{class:"muted",style:"font-size:12px;margin:2px 0 14px"},"ชื่อผู้ใช้: "+u.username+" • สิทธิ์: "+(u.role==="admin"?"ผู้ดูแลระบบ":"ผู้รับผิดชอบ")));
+  body.append(H("div",{class:"section-sub",style:"margin-bottom:8px;font-weight:700;color:var(--ink)"},"เปลี่ยนรหัสผ่าน"));
+  const op=H("input",{class:"inp",type:"password",placeholder:"รหัสผ่านเดิม"});
+  const np=H("input",{class:"inp",type:"password",placeholder:"รหัสผ่านใหม่ (อย่างน้อย 6 ตัว)"});
+  body.append(H("label",{class:"fld"},H("span",{class:"lb"},"รหัสผ่านเดิม"),op));
+  body.append(H("label",{class:"fld"},H("span",{class:"lb"},"รหัสผ่านใหม่"),np));
+  const save=H("button",{class:"btn primary"},"บันทึก");
+  save.onclick=async()=>{
+    try{
+      const patch={displayName:body._dn.value.trim()||u.displayName, person:body._dn.value.trim()||u.person};
+      if(np.value){ if(np.value.length<6){toast("รหัสผ่านใหม่อย่างน้อย 6 ตัว");return;}
+        if(!op.value){toast("กรอกรหัสผ่านเดิม");return;}
+        try{ const cred=firebase.auth.EmailAuthProvider.credential(uname2email(u.username),op.value);
+          await state.auth.currentUser.reauthenticateWithCredential(cred);
+          await state.auth.currentUser.updatePassword(np.value);
+        }catch(e){ toast("เปลี่ยนรหัสผ่านไม่สำเร็จ: รหัสผ่านเดิมไม่ถูกต้อง"); return; } }
+      await state.db.doc("users/"+u.uid).update(patch);
+      Object.assign(state.user,patch);
+      toast("บันทึกโปรไฟล์แล้ว"); save.closest(".modal-bg").remove(); renderApp();
+    }catch(e){ toast("บันทึกไม่สำเร็จ: "+e.message); }
+  };
+  modal("โปรไฟล์ของฉัน",body,[H("button",{class:"btn",onclick:e=>e.target.closest(".modal-bg").remove()},"ปิด"),save]);
+}
+
+/* ---------- donut (SVG) ---------- */
+function donut(segments,centerP,centerS){
+  // segments: [{v,color}]
+  const total=segments.reduce((a,s)=>a+s.v,0)||1; const R=60,C=2*Math.PI*R; let off=0;
+  const ns="http://www.w3.org/2000/svg";
+  const svg=document.createElementNS(ns,"svg"); svg.setAttribute("viewBox","0 0 150 150"); svg.setAttribute("width","150"); svg.setAttribute("height","150");
+  const bg=document.createElementNS(ns,"circle"); bg.setAttribute("cx",75);bg.setAttribute("cy",75);bg.setAttribute("r",R);
+  bg.setAttribute("fill","none");bg.setAttribute("stroke","var(--panel2)");bg.setAttribute("stroke-width",20); svg.append(bg);
+  segments.forEach(s=>{ if(s.v<=0)return; const len=C*s.v/total;
+    const ci=document.createElementNS(ns,"circle"); ci.setAttribute("cx",75);ci.setAttribute("cy",75);ci.setAttribute("r",R);
+    ci.setAttribute("fill","none");ci.setAttribute("stroke",s.color);ci.setAttribute("stroke-width",20);
+    ci.setAttribute("stroke-dasharray",len+" "+(C-len));ci.setAttribute("stroke-dashoffset",-off);
+    ci.setAttribute("transform","rotate(-90 75 75)"); svg.append(ci); off+=len; });
+  const wrap=H("div",{class:"donut"}); wrap.append(svg);
+  wrap.append(H("div",{class:"center"},H("div",{},H("div",{class:"p"},centerP),H("div",{class:"s"},centerS))));
+  return wrap;
+}
+const CGREEN="var(--green)",CRED="var(--red)",CAMBER="var(--amber)",CWHITE="var(--white-slice)";
+
+/* ---------- period state + controls ---------- */
+state.period={mode:"month",y:curBEYear(),sub:new Date().getMonth()+1};
+function resultAt(ind,pk){ return (ind.results&&ind.results[pk])||null; }
+function curPK(){ const p=state.period; return periodKey(p.mode,p.y,p.sub); }
+function tally(list,pk){ const t={pass:0,fail:0,recorded:0,none:0}; list.forEach(i=>{ t[statusOf(i,resultAt(i,pk))]++; }); return t; }
+function periodControls(onChange){
+  const p=state.period; const row=H("div",{class:"chip-row no-print",style:"align-items:center;margin-bottom:16px"});
+  const modeSel=H("select",{class:"inp",style:"width:auto"},
+    H("option",{value:"month",selected:p.mode==="month"?"":null},"รายเดือน"),
+    H("option",{value:"quarter",selected:p.mode==="quarter"?"":null},"รายไตรมาส"),
+    H("option",{value:"year",selected:p.mode==="year"?"":null},"รายปี"));
+  modeSel.value=p.mode;
+  const subSel=H("select",{class:"inp",style:"width:auto"});
+  function fillSub(){ subSel.innerHTML="";
+    if(p.mode==="month") TH_MONTH.forEach((m,i)=>subSel.append(H("option",{value:i+1},m)));
+    else if(p.mode==="quarter") [1,2,3,4].forEach(q=>subSel.append(H("option",{value:q},"ไตรมาส "+q)));
+    else subSel.style.display="none";
+    if(p.mode!=="year"){ subSel.style.display=""; subSel.value=p.sub; } }
+  fillSub();
+  const ySel=H("select",{class:"inp",style:"width:auto"});
+  const yNow=curBEYear(); for(let y=yNow+1;y>=yNow-4;y--) ySel.append(H("option",{value:y},"ปีงบ "+y));
+  ySel.value=p.y;
+  modeSel.onchange=()=>{ p.mode=modeSel.value; if(p.mode==="quarter"&&p.sub>4)p.sub=1; if(p.mode==="month"&&p.sub>12)p.sub=1; fillSub(); onChange(); };
+  subSel.onchange=()=>{ p.sub=parseInt(subSel.value); onChange(); };
+  ySel.onchange=()=>{ p.y=parseInt(ySel.value); onChange(); };
+  row.append(H("span",{class:"muted",style:"font-weight:600"},"ช่วงเวลา:"),modeSel,subSel,ySel);
+  return row;
+}
+
+/* ================= VIEW: HOME ================= */
+function viewHome(c){
+  c.append(H("h2",{class:"section-title"},"ตัวชี้วัดภาพรวมโรงพยาบาลชัยนาทนเรนทร"));
+  c.append(H("div",{class:"section-sub"},"สัดส่วนตัวชี้วัดที่ผ่านเกณฑ์ แยกตามกลุ่มงาน — เขียว=ผ่าน แดง=ไม่ผ่าน เหลือง=บันทึกแล้ว ขาว=ยังไม่บันทึก"));
+  c.append(periodControls(()=>rerender()));
+  const pk=curPK();
+  const groups=[["pct","PCT (ทีมนำทางคลินิก)"],["support","งานสนับสนุน"],["backoffice","Back office"]];
+  const donutGrid=H("div",{class:"grid",style:"grid-template-columns:repeat(auto-fit,minmax(300px,1fr))"});
+  groups.forEach(([g,label])=>{
+    const list=state.indArr.filter(i=>i.domain===g); const t=tally(list,pk);
+    const done=t.pass+t.fail+t.recorded; const passPct=done? Math.round(t.pass/done*100):0;
+    const card=H("div",{class:"card pad"});
+    card.append(H("h3",{style:"margin-bottom:14px"},label+" ",H("span",{class:"tag"},list.length+" ตัวชี้วัด")));
+    const dn=donut([{v:t.pass,color:CGREEN},{v:t.fail,color:CRED},{v:t.recorded,color:CAMBER},{v:t.none,color:CWHITE}],
+      passPct+"%", "ผ่านเกณฑ์");
+    const legend=H("div",{class:"legend"},
+      lg(CGREEN,"ผ่านเกณฑ์",t.pass),lg(CRED,"ไม่ผ่านเกณฑ์",t.fail),
+      lg(CAMBER,"บันทึกแล้ว",t.recorded),lg(CWHITE,"ยังไม่บันทึก",t.none));
+    card.append(H("div",{class:"donut-wrap"},dn,legend));
+    donutGrid.append(card);
+  });
+  c.append(donutGrid);
+  // overall stat row
+  const all=tally(state.indArr,pk); const doneAll=all.pass+all.fail+all.recorded;
+  const statRow=H("div",{class:"grid",style:"grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:16px"});
+  statRow.append(statCard(state.indArr.length,"ตัวชี้วัดทั้งหมด","b"));
+  statRow.append(statCard(all.pass,"ผ่านเกณฑ์","g"));
+  statRow.append(statCard(all.fail,"ไม่ผ่านเกณฑ์","r"));
+  statRow.append(statCard(all.none,"ยังไม่บันทึก","n"));
+  statRow.append(statCard((doneAll?Math.round(all.pass/doneAll*100):0)+"%","อัตราผ่านเกณฑ์รวม","a"));
+  c.append(statRow);
+  // hospital-level highlight
+  const hosp=state.indArr.filter(i=>(i.levels||[]).includes("hospital"));
+  if(hosp.length){
+    const card=H("div",{class:"card",style:"margin-top:16px"});
+    card.append(H("div",{class:"pad",style:"padding-bottom:6px"},
+      H("h3",{},"ตัวชี้วัดสำคัญระดับโรงพยาบาล ",H("span",{class:"tag"},hosp.length+" ตัว")),
+      H("div",{class:"muted",style:"font-size:12.5px;margin-top:3px"},"ตัวชี้วัดที่ผู้บริหารติดตาม — "+periodLabel(state.period.mode,state.period.y,state.period.sub))));
+    const tb=H("table"); tb.append(H("thead",{},H("tr",{},H("th",{},"ตัวชี้วัด"),H("th",{},"หน่วยงาน"),H("th",{},"เป้าหมาย"),H("th",{},"ผล"),H("th",{},"สถานะ"))));
+    const tbody=H("tbody");
+    hosp.slice(0,40).forEach(i=>{ const r=resultAt(i,pk); const st=statusOf(i,r); const v=computeValue(i,r);
+      tbody.append(H("tr",{},
+        H("td",{},H("div",{style:"font-weight:600;max-width:420px"},i.name)),
+        H("td",{class:"muted"},i.unitName),
+        H("td",{class:"muted"},i.target||"—"),
+        H("td",{class:"mono-num",style:"font-weight:700"}, v==null?"—":fmtVal(v,i)),
+        H("td",{},H("span",{class:"pill "+STATUS_META[st].c},STATUS_META[st].t)))); });
+    card.append(tb); tb.append(tbody); c.append(card);
+  }
+}
+function lg(color,label,n){ return H("div",{},H("span",{class:"sw",style:"background:"+color}),H("span",{},label),H("b",{style:"margin-left:auto"},n)); }
+function statCard(n,l,cls){ const c=H("div",{class:"card pad stat"}); c.append(H("div",{class:"n pill-color-"+cls,style:"color:"+({g:"var(--green)",r:"var(--red)",a:"var(--amber)",b:"var(--brand)",n:"var(--muted)"}[cls]||"var(--ink)")},n)); c.append(H("div",{class:"l"},l)); return c; }
+function fmtVal(v,ind){ const pct=/ร้อยละ|อัตรา|%/.test(ind.unitType||""); const s=Math.round(v*100)/100; return pct? s+"%" : String(s); }
+
+/* ================= VIEW: REPORT ================= */
+state.report={cat:"hospital",sub:""};
+function uniqueTeams(){ return [...new Set(state.indArr.filter(i=>i.domain==="pct").map(i=>i.team).filter(Boolean))].sort(); }
+function uniqueUnits(){ const m=new Map(); state.indArr.forEach(i=>m.set(i.unit,i.unitName)); return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],"th")); }
+function uniqueOwners(){ const s=new Set(); state.indArr.forEach(i=>(i.owners||[]).concat(i.secondary||[]).forEach(o=>o&&s.add(o.trim()))); return [...s].sort((a,b)=>a.localeCompare(b,"th")); }
+function uniqueSP(){ return [...new Set(state.indArr.map(i=>i.serviceplan).filter(Boolean))].sort(); }
+
+function reportFilter(list){
+  const r=state.report;
+  if(r.cat==="hospital") return list.filter(i=>(i.levels||[]).includes("hospital"));
+  if(r.cat==="ha") return list.filter(i=>(i.levels||[]).includes("ha")).filter(i=>!r.sub||i.unit===r.sub);
+  if(r.cat==="pct") return list.filter(i=>i.domain==="pct").filter(i=>!r.sub||i.team===r.sub);
+  if(r.cat==="sp") return list.filter(i=>r.sub? i.serviceplan===r.sub : ((i.levels||[]).includes("sp")||i.serviceplan));
+  if(r.cat==="unit") return list.filter(i=>!r.sub||i.unit===r.sub);
+  if(r.cat==="owner") return list.filter(i=>(i.owners||[]).concat(i.secondary||[]).some(o=>o&&o.trim()===r.sub));
+  return list;
+}
+function viewReport(c){
+  const r=state.report;
+  c.append(H("h2",{class:"section-title no-print"},"รายงานผล KPI"));
+  c.append(H("div",{class:"section-sub no-print"},"เลือกกลุ่มตัวชี้วัดและช่วงเวลา แล้วสั่งพิมพ์เป็น PDF ได้"));
+  // category chips
+  const cats=[["hospital","ตัวชี้วัดโรงพยาบาล"],["pct","PCT"],["ha","HA"],["sp","Service Plan"],["unit","ประจำหน่วยงาน"],["owner","ตามผู้รับผิดชอบ"]];
+  const chipRow=H("div",{class:"chip-row no-print",style:"margin-bottom:12px"});
+  cats.forEach(([k,l])=>chipRow.append(H("button",{class:"chip"+(r.cat===k?" on":""),onclick:()=>{r.cat=k;r.sub="";rerender();}},l)));
+  c.append(chipRow);
+  // secondary select
+  let subOpts=null;
+  if(r.cat==="pct") subOpts=uniqueTeams().map(t=>[t,t]);
+  else if(r.cat==="unit"||r.cat==="ha") subOpts=uniqueUnits();
+  else if(r.cat==="sp") subOpts=uniqueSP().map(t=>[t,"Service Plan: "+t]);
+  else if(r.cat==="owner") subOpts=uniqueOwners().map(o=>[o,o]);
+  if(subOpts){
+    const sel=H("select",{class:"inp no-print",style:"width:auto;max-width:100%;margin-bottom:12px"});
+    sel.append(H("option",{value:""}, r.cat==="owner"?"— เลือกผู้รับผิดชอบ —": r.cat==="pct"?"ทุกทีม PCT": r.cat==="sp"?"ทุก Service Plan":"ทุกหน่วยงาน"));
+    subOpts.forEach(([v,l])=>sel.append(H("option",{value:v},l)));
+    sel.value=r.sub; sel.onchange=()=>{r.sub=sel.value;rerender();};
+    c.append(sel);
+  }
+  c.append(periodControls(()=>rerender()));
+
+  const pk=curPK(); const list=reportFilter(state.indArr);
+  const t=tally(list,pk); const done=t.pass+t.fail+t.recorded;
+  // summary + print
+  const head=H("div",{style:"display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;margin-bottom:14px"});
+  head.append(H("div",{},
+    H("div",{style:"font-weight:800;font-size:16px"},catTitle()),
+    H("div",{class:"muted",style:"font-size:12.5px"},periodLabel(state.period.mode,state.period.y,state.period.sub)+" • "+list.length+" ตัวชี้วัด")));
+  const btns=H("div",{class:"chip-row no-print"});
+  btns.append(H("button",{class:"btn sm",onclick:()=>exportCSV(list,pk)},"⬇ CSV"));
+  btns.append(H("button",{class:"btn sm primary",onclick:()=>window.print()},"🖨 พิมพ์ / บันทึก PDF"));
+  head.append(btns);
+  c.append(head);
+  // pass-rate bars
+  const summ=H("div",{class:"card pad",style:"margin-bottom:16px"});
+  summ.append(barLine("ผ่านเกณฑ์",t.pass,list.length,CGREEN));
+  summ.append(barLine("ไม่ผ่านเกณฑ์",t.fail,list.length,CRED));
+  summ.append(barLine("บันทึกแล้ว (ไม่มีเกณฑ์)",t.recorded,list.length,CAMBER));
+  summ.append(barLine("ยังไม่บันทึก",t.none,list.length,"var(--grey)"));
+  summ.append(H("div",{style:"margin-top:8px;font-weight:700"},"อัตราผ่านเกณฑ์: "+(done?Math.round(t.pass/done*100):0)+"% ("+t.pass+"/"+done+" ที่บันทึกผล)"));
+  c.append(summ);
+  // table
+  const card=H("div",{class:"card"});
+  const tb=H("table");
+  tb.append(H("thead",{},H("tr",{},H("th",{},"#"),H("th",{},"ตัวชี้วัด"),H("th",{},"หน่วยงาน"),H("th",{},"เป้าหมาย"),H("th",{},"ตัวตั้ง"),H("th",{},"ตัวหาร"),H("th",{},"ผล"),H("th",{},"สถานะ"))));
+  const tbody=H("tbody");
+  if(!list.length) tbody.append(H("tr",{},H("td",{colspan:8,class:"muted",style:"text-align:center;padding:26px"},"ไม่มีตัวชี้วัดในกลุ่มนี้")));
+  list.forEach((i,idx)=>{ const res=resultAt(i,pk); const st=statusOf(i,res); const v=computeValue(i,res);
+    const tr=H("tr",{style:"cursor:pointer",onclick:()=>openIndicator(i.id)});
+    tr.append(H("td",{class:"muted"},idx+1));
+    tr.append(H("td",{},H("div",{style:"font-weight:600;max-width:380px"},i.name),
+      i.serviceplan?H("span",{class:"tag"},"SP: "+i.serviceplan):null));
+    tr.append(H("td",{class:"muted",style:"max-width:150px"},i.unitName));
+    tr.append(H("td",{class:"muted"},i.target||"—"));
+    tr.append(H("td",{class:"mono-num"},res&&res.num!=null&&res.num!==""?res.num:"—"));
+    tr.append(H("td",{class:"mono-num"},res&&res.den!=null&&res.den!==""?res.den:"—"));
+    tr.append(H("td",{class:"mono-num",style:"font-weight:700"},v==null?"—":fmtVal(v,i)));
+    tr.append(H("td",{},H("span",{class:"pill "+STATUS_META[st].c},STATUS_META[st].t)));
+    tbody.append(tr); });
+  tb.append(tbody); card.append(tb); c.append(card);
+
+  function catTitle(){ const map={hospital:"ตัวชี้วัดโรงพยาบาล",pct:"PCT"+(r.sub?" — "+r.sub:""),ha:"HA"+(r.sub?" — "+unitName(r.sub):""),
+    sp:"Service Plan"+(r.sub?": "+r.sub:""),unit:r.sub?unitName(r.sub):"ตัวชี้วัดประจำหน่วยงาน (ทุกหน่วย)",owner:"ผู้รับผิดชอบ: "+(r.sub||"—")}; return map[r.cat]; }
+}
+function unitName(k){ const i=state.indArr.find(x=>x.unit===k); return i?i.unitName:k; }
+function barLine(label,n,total,color){ const pct=total?Math.round(n/total*100):0;
+  const row=H("div",{style:"display:flex;align-items:center;gap:12px;margin-bottom:8px"});
+  row.append(H("div",{style:"width:180px;font-size:13px"},label));
+  const bar=H("div",{class:"bar",style:"flex:1"}); bar.append(H("i",{style:"width:"+pct+"%;background:"+color})); row.append(bar);
+  row.append(H("div",{class:"mono-num",style:"width:78px;text-align:right;font-weight:700"},n+" ("+pct+"%)")); return row; }
+async function exportCSV(list,pk){
+  const rows=[["ตัวชี้วัด","หน่วยงาน","เป้าหมาย","ตัวตั้ง","ตัวหาร","ผล","สถานะ"]];
+  list.forEach(i=>{ const r=resultAt(i,pk); const v=computeValue(i,r); const st=STATUS_META[statusOf(i,r)].t;
+    rows.push([i.name,i.unitName,i.target||"",r&&r.num!=null?r.num:"",r&&r.den!=null?r.den:"",v==null?"":fmtVal(v,i),st]); });
+  const csv="﻿"+rows.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(",")).join("\n");
+  const fn="kpi_report_"+pk+".csv";
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+  a.download=fn; a.click(); toast("ดาวน์โหลด CSV แล้ว");
+}
+
+/* ---------- save result ---------- */
+async function saveResult(ind,pk,data){
+  const entry={...data, by:state.user.username, byName:state.user.displayName||state.user.username, at:new Date().toISOString()};
+  await state.db.doc("indicators/"+ind.id).update({["results."+pk]:entry});
+  // optimistic
+  const local=state.ind.get(ind.id); if(local){ local.results=local.results||{}; local.results[pk]=entry; }
+}
+
+/* ---------- indicator detail modal ---------- */
+function openIndicator(id){
+  const ind=state.ind.get(id); if(!ind) return;
+  const body=H("div",{});
+  const canEdit=ownsIndicator(ind);
+  // definition block
+  const def=H("div",{class:"card pad",style:"margin-bottom:16px;background:var(--panel2)"});
+  def.append(H("div",{style:"font-weight:700;margin-bottom:8px"},ind.name));
+  def.append(kv("หน่วยงาน",ind.unitName));
+  if(ind.serviceplan) def.append(kv("Service Plan",ind.serviceplan));
+  def.append(kv("เป้าหมาย",ind.target||"—"));
+  def.append(kv("ตัวตั้ง",ind.numerator||"—"));
+  def.append(kv("ตัวหาร",ind.denominator||"—"));
+  def.append(kv("หน่วย",ind.unitType||"—"));
+  def.append(kv("ผู้รับผิดชอบหลัก",(ind.owners||[]).join(", ")||"—"));
+  if((ind.secondary||[]).length) def.append(kv("ผู้รับผิดชอบรอง",(ind.secondary||[]).join(", ")));
+  def.append(kv("ระดับรายงาน",(ind.levels||[]).map(levLabel).join(" · ")||"—"));
+  body.append(def);
+  // record form
+  const pk=curPK(); const cur=resultAt(ind,pk)||{};
+  const form=H("div",{class:"card pad",style:"margin-bottom:16px"});
+  form.append(H("div",{style:"font-weight:700;margin-bottom:4px"},"บันทึกผล — "+periodLabel(state.period.mode,state.period.y,state.period.sub)));
+  if(!canEdit) form.append(H("div",{class:"muted",style:"font-size:12.5px;margin-bottom:8px"},"ท่านไม่ได้เป็นผู้รับผิดชอบตัวชี้วัดนี้ (ดูได้อย่างเดียว)"));
+  const g=H("div",{style:"display:grid;grid-template-columns:1fr 1fr;gap:12px"});
+  const numI=H("input",{class:"inp",type:"number",value:cur.num!=null?cur.num:"",placeholder:"ตัวตั้ง",disabled:!canEdit?"":null});
+  const denI=H("input",{class:"inp",type:"number",value:cur.den!=null?cur.den:"",placeholder:"ตัวหาร",disabled:!canEdit?"":null});
+  g.append(H("label",{class:"fld"},H("span",{class:"lb"},"ตัวตั้ง"),numI));
+  g.append(H("label",{class:"fld"},H("span",{class:"lb"},"ตัวหาร"),denI));
+  form.append(g);
+  const valI=H("input",{class:"inp",type:"number",value:cur.value!=null?cur.value:"",placeholder:"เว้นว่างเพื่อคำนวณอัตโนมัติ",disabled:!canEdit?"":null});
+  form.append(H("label",{class:"fld"},H("span",{class:"lb"},"ค่าที่รายงาน (กรณีไม่ใช่สัดส่วน เช่น นาที/จำนวน — เว้นว่างได้)"),valI));
+  const noteI=H("input",{class:"inp",value:cur.note||"",placeholder:"หมายเหตุ (ถ้ามี)",disabled:!canEdit?"":null});
+  form.append(H("label",{class:"fld"},H("span",{class:"lb"},"หมายเหตุ"),noteI));
+  const preview=H("div",{class:"muted",style:"font-size:13px;margin-bottom:8px"});
+  function upd(){ const r={num:numI.value,den:denI.value,value:valI.value}; const v=computeValue(ind,r);
+    const st=statusOf(ind,r); preview.innerHTML=""; preview.append(H("span",{},"ผลที่คำนวณได้: "),
+      H("b",{style:"color:var(--ink)"}, v==null?"—":fmtVal(v,ind)), " ",
+      v==null?"":H("span",{class:"pill "+STATUS_META[st].c},STATUS_META[st].t)); }
+  [numI,denI,valI].forEach(i=>i.addEventListener("input",upd)); upd();
+  form.append(preview);
+  if(canEdit){
+    const save=H("button",{class:"btn primary"},"บันทึกผล");
+    save.onclick=async()=>{ save.textContent="กำลังบันทึก…"; try{
+      await saveResult(ind,pk,{num:numI.value===""?null:parseFloat(numI.value),den:denI.value===""?null:parseFloat(denI.value),value:valI.value===""?null:parseFloat(valI.value),note:noteI.value});
+      toast("บันทึกผลแล้ว"); save.closest(".modal-bg").remove(); rerender();
+    }catch(e){ toast("บันทึกไม่สำเร็จ: "+e.message); save.textContent="บันทึกผล"; } };
+    form.append(save);
+  }
+  body.append(form);
+  // history
+  const hist=Object.entries(ind.results||{}).sort((a,b)=>a[0]<b[0]?1:-1);
+  if(hist.length){
+    const hcard=H("div",{class:"card"}); hcard.append(H("div",{class:"pad",style:"padding-bottom:6px;font-weight:700"},"ประวัติการบันทึก"));
+    const tb=H("table"); tb.append(H("thead",{},H("tr",{},H("th",{},"งวด"),H("th",{},"ตัวตั้ง"),H("th",{},"ตัวหาร"),H("th",{},"ผล"),H("th",{},"สถานะ"),H("th",{},"ผู้บันทึก"))));
+    const tbody=H("tbody");
+    hist.forEach(([k,r])=>{ const v=computeValue(ind,r); const st=statusOf(ind,r);
+      tbody.append(H("tr",{},H("td",{},pkLabel(k)),H("td",{class:"mono-num"},r.num??"—"),H("td",{class:"mono-num"},r.den??"—"),
+        H("td",{class:"mono-num",style:"font-weight:700"},v==null?"—":fmtVal(v,ind)),
+        H("td",{},H("span",{class:"pill "+STATUS_META[st].c},STATUS_META[st].t)),H("td",{class:"muted"},r.byName||r.by||"—"))); });
+    tb.append(tbody); hcard.append(tb); body.append(hcard);
+  }
+  modal("รายละเอียดตัวชี้วัด",body,[H("button",{class:"btn",onclick:e=>e.target.closest(".modal-bg").remove()},"ปิด"),
+    H("button",{class:"btn",onclick:()=>{const bg=document.querySelector(".modal-bg");if(bg)bg.remove();openChat(ind.id);}},"💬 ถามคำถาม")]);
+}
+function kv(k,v){ return H("div",{style:"display:flex;gap:10px;margin-bottom:5px;font-size:13px"},
+  H("div",{class:"muted",style:"width:120px;flex:0 0 120px"},k),H("div",{style:"flex:1"},v)); }
+function levLabel(l){ return {moph:"กระทรวง",sp:"Service Plan",hospital:"โรงพยาบาล",pct:"PCT",unit:"หน่วยงาน",ha:"สรพ.(HA)",thip:"THIP"}[l]||l; }
+function pkLabel(k){ const m=k.match(/^(\d+)-(M(\d+)|Q(\d)|Y)$/); if(!m)return k; const y=m[1];
+  if(m[2]==="Y")return "ปี "+y; if(m[3])return TH_MONTH[parseInt(m[3])-1]+" "+y; if(m[4])return "ไตรมาส "+m[4]+"/"+y; return k; }
+
+/* ================= VIEW: RECORD ================= */
+function viewRecord(c){
+  c.append(H("h2",{class:"section-title"},"บันทึกผล KPI"));
+  c.append(H("div",{class:"section-sub"},"แสดงเฉพาะตัวชี้วัดที่ท่านรับผิดชอบ กรอกตัวตั้ง/ตัวหารแล้วบันทึก"));
+  c.append(periodControls(()=>rerender()));
+  const pk=curPK();
+  let mine=state.indArr.filter(ownsIndicator);
+  // admin: allow choosing a person/unit context
+  if(state.user.role==="admin"){
+    const sel=H("select",{class:"inp no-print",style:"width:auto;margin-bottom:14px"});
+    sel.append(H("option",{value:""},"— ทุกตัวชี้วัด (ผู้ดูแล) —"));
+    uniqueUnits().forEach(([k,n])=>sel.append(H("option",{value:"u:"+k},n)));
+    sel.value=state.report._recCtx||""; sel.onchange=()=>{state.report._recCtx=sel.value;rerender();};
+    c.append(H("div",{},H("span",{class:"muted",style:"font-weight:600;margin-right:8px"},"เลือกหน่วยงาน:"),sel));
+    const ctx=state.report._recCtx;
+    if(ctx&&ctx.startsWith("u:")) mine=state.indArr.filter(i=>i.unit===ctx.slice(2));
+    else mine=state.indArr;
+  }
+  const notDone=mine.filter(i=>statusOf(i,resultAt(i,pk))==="none").length;
+  const alert=H("div",{class:"card pad",style:"margin-bottom:16px;border-left:4px solid "+(notDone?"var(--amber)":"var(--green)")});
+  alert.append(H("div",{style:"font-weight:700"}, notDone? "⚠ ยังไม่ได้บันทึก "+notDone+" ตัวชี้วัด ในงวด "+periodLabel(state.period.mode,state.period.y,state.period.sub)
+     : "✓ บันทึกครบทุกตัวชี้วัดในงวดนี้แล้ว"));
+  alert.append(H("div",{class:"muted",style:"font-size:12.5px"},"รับผิดชอบทั้งหมด "+mine.length+" ตัวชี้วัด"));
+  c.append(alert);
+  if(!mine.length){ c.append(H("div",{class:"card pad muted",style:"text-align:center"},"ยังไม่มีตัวชี้วัดที่ท่านรับผิดชอบ — ผู้ดูแลระบบสามารถกำหนดผู้รับผิดชอบได้ที่เมนูแก้ไขตัวชี้วัด")); return; }
+  const card=H("div",{class:"card"});
+  const tb=H("table"); tb.append(H("thead",{},H("tr",{},H("th",{},"ตัวชี้วัด"),H("th",{},"เป้าหมาย"),H("th",{style:"width:110px"},"ตัวตั้ง"),H("th",{style:"width:110px"},"ตัวหาร"),H("th",{style:"width:110px"},"ค่า/ผล"),H("th",{style:"width:120px"},"สถานะ"),H("th",{style:"width:90px"},""))));
+  const tbody=H("tbody");
+  mine.forEach(i=>{ const res=resultAt(i,pk)||{};
+    const numI=H("input",{class:"inp",type:"number",value:res.num!=null?res.num:"",style:"padding:7px"});
+    const denI=H("input",{class:"inp",type:"number",value:res.den!=null?res.den:"",style:"padding:7px"});
+    const valI=H("input",{class:"inp",type:"number",value:res.value!=null?res.value:"",style:"padding:7px",placeholder:"auto"});
+    const stCell=H("td",{}); const btn=H("button",{class:"btn sm primary"},"บันทึก");
+    function refreshSt(){ const r={num:numI.value,den:denI.value,value:valI.value}; const st=statusOf(i,r);
+      stCell.innerHTML=""; const v=computeValue(i,r); stCell.append(H("span",{class:"pill "+STATUS_META[st].c},STATUS_META[st].t),
+        v==null?"":H("span",{class:"mono-num",style:"margin-left:6px;font-weight:700"},fmtVal(v,i))); }
+    [numI,denI,valI].forEach(x=>x.addEventListener("input",refreshSt)); refreshSt();
+    btn.onclick=async()=>{ btn.textContent="…"; try{
+      await saveResult(i,pk,{num:numI.value===""?null:parseFloat(numI.value),den:denI.value===""?null:parseFloat(denI.value),value:valI.value===""?null:parseFloat(valI.value),note:res.note||""});
+      btn.textContent="✓"; toast("บันทึก: "+i.name.slice(0,20)+"…"); setTimeout(()=>btn.textContent="บันทึก",900);
+    }catch(e){ toast("ผิดพลาด: "+e.message); btn.textContent="บันทึก"; } };
+    const nameTd=H("td",{},H("div",{style:"font-weight:600;max-width:320px;cursor:pointer",onclick:()=>openIndicator(i.id)},i.name),
+      H("div",{class:"muted",style:"font-size:11.5px"},i.unitName));
+    tbody.append(H("tr",{},nameTd,H("td",{class:"muted"},i.target||"—"),
+      H("td",{},numI),H("td",{},denI),H("td",{},valI),stCell,H("td",{},btn)));
+  });
+  tb.append(tbody); card.append(tb); c.append(card);
+}
+
+/* ---------- confirm ---------- */
+function confirmModal(msg,onYes){
+  const body=H("div",{},msg);
+  const yes=H("button",{class:"btn danger",onclick:()=>{yes.closest(".modal-bg").remove();onYes();}},"ยืนยันลบ");
+  modal("ยืนยันการลบ",body,[H("button",{class:"btn",onclick:e=>e.target.closest(".modal-bg").remove()},"ยกเลิก"),yes]);
+}
+const LEVELS_ALL=[["moph","กระทรวง"],["sp","Service Plan"],["hospital","โรงพยาบาล"],["pct","PCT"],["unit","หน่วยงาน"],["ha","สรพ.(HA)"],["thip","THIP"]];
+const FREQ_ALL=[["month","รายเดือน"],["quarter","รายไตรมาส"],["half","ราย 6 เดือน"],["year","รายปี"]];
+
+/* ================= VIEW: EDIT ================= */
+state.edit={q:""};
+function viewEdit(c){
+  const isAdmin=state.user.role==="admin";
+  c.append(H("h2",{class:"section-title"},"แก้ไขตัวชี้วัด"));
+  c.append(H("div",{class:"section-sub"}, isAdmin? "ผู้ดูแลระบบ: เพิ่ม ลบ แก้ไข และกำหนดผู้รับผิดชอบได้ทุกตัวชี้วัด"
+    : "แก้ไขได้เฉพาะตัวชี้วัดที่ท่านเป็นผู้รับผิดชอบหลัก"));
+  const bar=H("div",{style:"display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center"});
+  const q=H("input",{class:"inp",style:"max-width:340px",placeholder:"ค้นหาตัวชี้วัด / หน่วยงาน…",value:state.edit.q});
+  q.oninput=()=>{state.edit.q=q.value;rerenderEditList();};
+  bar.append(q);
+  bar.append(H("button",{class:"btn primary",onclick:()=>editIndicator(null)},"+ เพิ่มตัวชี้วัด"));
+  c.append(bar);
+  const listWrap=H("div",{id:"editlist"}); c.append(listWrap);
+  rerenderEditList();
+}
+function editableList(){
+  const isAdmin=state.user.role==="admin";
+  let list=isAdmin? state.indArr : state.indArr.filter(i=>(i.owners||[]).some(o=>o&&o.trim()===(state.user.person||state.user.displayName||"").trim())||(state.user.units||[]).includes(i.unit));
+  const q=state.edit.q.trim().toLowerCase();
+  if(q) list=list.filter(i=>(i.name+" "+i.unitName+" "+(i.owners||[]).join(" ")).toLowerCase().includes(q));
+  return list;
+}
+function rerenderEditList(){
+  const w=$("#editlist"); if(!w)return; w.innerHTML="";
+  const list=editableList();
+  const card=H("div",{class:"card"});
+  const tb=H("table"); tb.append(H("thead",{},H("tr",{},H("th",{},"ตัวชี้วัด"),H("th",{},"หน่วยงาน"),H("th",{},"เป้าหมาย"),H("th",{},"ผู้รับผิดชอบ"),H("th",{style:"width:130px"},""))));
+  const tbody=H("tbody");
+  if(!list.length) tbody.append(H("tr",{},H("td",{colspan:5,class:"muted",style:"text-align:center;padding:24px"},"ไม่พบตัวชี้วัด")));
+  list.slice(0,400).forEach(i=>{ tbody.append(H("tr",{},
+    H("td",{},H("div",{style:"font-weight:600;max-width:360px"},i.name),i.serviceplan?H("span",{class:"tag"},"SP: "+i.serviceplan):null),
+    H("td",{class:"muted"},i.unitName),
+    H("td",{class:"muted"},i.target||"—"),
+    H("td",{class:"muted"},(i.owners||[]).join(", ")||"—"),
+    H("td",{},H("div",{class:"chip-row"},
+      H("button",{class:"btn sm",onclick:()=>editIndicator(i.id)},"แก้ไข"),
+      H("button",{class:"btn sm danger",onclick:()=>confirmModal(H("div",{},"ลบตัวชี้วัด \""+i.name+"\" ? การลบไม่สามารถกู้คืนได้"),async()=>{
+        try{ await state.db.doc("indicators/"+i.id).delete(); toast("ลบแล้ว"); }catch(e){toast("ลบไม่สำเร็จ: "+e.message);} })},"ลบ"))))); });
+  tb.append(tbody); card.append(tb); w.append(H("div",{class:"muted",style:"font-size:12px;margin-bottom:8px"},list.length+" ตัวชี้วัด"+(list.length>400?" (แสดง 400 แรก)":"")));
+  w.append(card);
+}
+function editIndicator(id){
+  const isNew=!id; const ind=isNew? {id:"k"+Math.random().toString(36).slice(2,10),unit:"",unitName:"",domain:"support",team:"",serviceplan:"",name:"",target:"",numerator:"",denominator:"",unitType:"ร้อยละ",levels:[],freq:["month"],owners:[],secondary:[],relatedUnits:[]} : {...state.ind.get(id)};
+  const body=H("div",{});
+  const F={};
+  const units=(state.config&&state.config.units)||[];
+  body.append(fld("ชื่อตัวชี้วัด",F.name=H("textarea",{class:"inp",rows:2},ind.name)));
+  const unitSel=H("select",{class:"inp"}); unitSel.append(H("option",{value:""},"— เลือกหน่วยงาน —"));
+  units.forEach(u=>unitSel.append(H("option",{value:u.key},u.name))); unitSel.value=ind.unit; F.unit=unitSel;
+  const g2=H("div",{style:"display:grid;grid-template-columns:1fr 1fr;gap:12px"});
+  g2.append(fld("หน่วยงาน (เจ้าภาพ)",unitSel));
+  const domSel=H("select",{class:"inp"},H("option",{value:"pct"},"PCT"),H("option",{value:"support"},"งานสนับสนุน"),H("option",{value:"backoffice"},"Back office"));
+  domSel.value=ind.domain; F.domain=domSel; g2.append(fld("กลุ่มงาน",domSel));
+  body.append(g2);
+  const g3=H("div",{style:"display:grid;grid-template-columns:1fr 1fr;gap:12px"});
+  g3.append(fld("ทีม PCT (ถ้ามี)",F.team=H("input",{class:"inp",value:ind.team||""})));
+  g3.append(fld("Service Plan (ถ้ามี)",F.sp=H("input",{class:"inp",value:ind.serviceplan||"",placeholder:"เช่น Sepsis, STEMI"})));
+  body.append(g3);
+  const g4=H("div",{style:"display:grid;grid-template-columns:2fr 1fr;gap:12px"});
+  g4.append(fld("เป้าหมาย",F.target=H("input",{class:"inp",value:ind.target||"",placeholder:"เช่น ≥ 80 %, < 12%, ไม่เกิน 120 นาที"})));
+  g4.append(fld("หน่วย",F.unitType=H("input",{class:"inp",value:ind.unitType||"ร้อยละ"})));
+  body.append(g4);
+  body.append(fld("นิยามตัวตั้ง (numerator)",F.num=H("textarea",{class:"inp",rows:2},ind.numerator)));
+  body.append(fld("นิยามตัวหาร (denominator)",F.den=H("textarea",{class:"inp",rows:2},ind.denominator)));
+  body.append(fld("ผู้รับผิดชอบหลัก (1-2 คน, คั่นด้วย ,)",F.owners=H("input",{class:"inp",value:(ind.owners||[]).join(", ")})));
+  body.append(fld("ผู้รับผิดชอบรอง (คั่นด้วย ,)",F.secondary=H("input",{class:"inp",value:(ind.secondary||[]).join(", ")})));
+  // levels
+  const levBox=H("div",{class:"chip-row"}); F._lev=new Set(ind.levels||[]);
+  LEVELS_ALL.forEach(([k,l])=>{ const b=H("button",{class:"chip"+(F._lev.has(k)?" on":"")},l);
+    b.onclick=()=>{ if(F._lev.has(k)){F._lev.delete(k);b.classList.remove("on");}else{F._lev.add(k);b.classList.add("on");} }; levBox.append(b); });
+  body.append(fld("ระดับการรายงาน",levBox));
+  const freqBox=H("div",{class:"chip-row"}); F._freq=new Set(ind.freq||["month"]);
+  FREQ_ALL.forEach(([k,l])=>{ const b=H("button",{class:"chip"+(F._freq.has(k)?" on":"")},l);
+    b.onclick=()=>{ if(F._freq.has(k)){F._freq.delete(k);b.classList.remove("on");}else{F._freq.add(k);b.classList.add("on");} }; freqBox.append(b); });
+  body.append(fld("ความถี่การเก็บ",freqBox));
+  // related units (distribute data collection)
+  const relBox=H("div",{style:"max-height:140px;overflow:auto;border:1px solid var(--line);border-radius:9px;padding:8px"}); F._rel=new Set(ind.relatedUnits||[]);
+  units.forEach(u=>{ const id2="rel_"+u.key.replace(/\W/g,"");
+    const cb=H("input",{type:"checkbox",id:id2}); cb.checked=F._rel.has(u.key);
+    cb.onchange=()=>{ if(cb.checked)F._rel.add(u.key); else F._rel.delete(u.key); };
+    relBox.append(H("label",{style:"display:flex;gap:8px;align-items:center;font-size:12.5px;padding:2px 0"},cb,u.name)); });
+  body.append(fld("หน่วยงานที่เกี่ยวข้อง (กระจายให้ช่วยเก็บข้อมูล)",relBox));
+
+  const save=H("button",{class:"btn primary"},isNew?"เพิ่มตัวชี้วัด":"บันทึกการแก้ไข");
+  save.onclick=async()=>{
+    if(!F.name.value.trim()){toast("กรอกชื่อตัวชี้วัด");return;}
+    const uKey=F.unit.value; const uName=(units.find(u=>u.key===uKey)||{}).name||F.team.value||"ไม่ระบุหน่วยงาน";
+    const splitC=s=>s.split(",").map(x=>x.trim()).filter(Boolean);
+    const doc={ id:ind.id, unit:uKey, unitName:uName, domain:F.domain.value, team:F.team.value.trim(), serviceplan:F.sp.value.trim(),
+      name:F.name.value.trim(), target:F.target.value.trim(), unitType:F.unitType.value.trim()||"ร้อยละ",
+      numerator:F.num.value.trim(), denominator:F.den.value.trim(),
+      owners:splitC(F.owners.value).slice(0,2), secondary:splitC(F.secondary.value),
+      levels:[...F._lev], freq:[...F._freq], relatedUnits:[...F._rel] };
+    save.textContent="กำลังบันทึก…";
+    try{
+      if(isNew){ await state.db.doc("indicators/"+ind.id).set({...doc,results:{},createdAt:Date.now()}); }
+      else { await state.db.doc("indicators/"+ind.id).update(doc); }
+      toast(isNew?"เพิ่มตัวชี้วัดแล้ว":"บันทึกแล้ว"); save.closest(".modal-bg").remove();
+    }catch(e){ toast("บันทึกไม่สำเร็จ: "+e.message); save.textContent=isNew?"เพิ่มตัวชี้วัด":"บันทึกการแก้ไข"; }
+  };
+  modal(isNew?"เพิ่มตัวชี้วัดใหม่":"แก้ไขตัวชี้วัด",body,[H("button",{class:"btn",onclick:e=>e.target.closest(".modal-bg").remove()},"ยกเลิก"),save]);
+}
+function fld(label,node){ return H("label",{class:"fld"},H("span",{class:"lb"},label),node); }
+
+/* ================= VIEW: OWNERS + CHAT ================= */
+function viewOwners(c){
+  c.append(H("h2",{class:"section-title"},"ผู้รับผิดชอบตัวชี้วัด"));
+  c.append(H("div",{class:"section-sub"},"รายชื่อผู้รับผิดชอบแยกตามหน่วยงาน และกล่องคำถามสำหรับสอบถามการเก็บตัวชี้วัด"));
+  // ask a question
+  const askCard=H("div",{class:"card pad",style:"margin-bottom:16px"});
+  askCard.append(H("div",{style:"font-weight:700;margin-bottom:8px"},"💬 ตั้งคำถามเกี่ยวกับการเก็บตัวชี้วัด"));
+  const sqi=H("input",{class:"inp",placeholder:"พิมพ์เพื่อค้นหาตัวชี้วัดที่ต้องการสอบถาม…"});
+  const sug=H("div",{style:"margin-top:6px"});
+  sqi.oninput=()=>{ const q=sqi.value.trim().toLowerCase(); sug.innerHTML=""; if(q.length<2)return;
+    state.indArr.filter(i=>i.name.toLowerCase().includes(q)).slice(0,6).forEach(i=>{
+      sug.append(H("div",{style:"padding:7px 9px;border:1px solid var(--line);border-radius:8px;margin-bottom:5px;cursor:pointer",onclick:()=>openChat(i.id)},
+        H("b",{},i.name)," ",H("span",{class:"muted",style:"font-size:12px"},i.unitName))); }); };
+  askCard.append(sqi,sug); c.append(askCard);
+  // recent threads
+  const threadsCard=H("div",{class:"card",style:"margin-bottom:16px"});
+  threadsCard.append(H("div",{class:"pad",style:"padding-bottom:6px;font-weight:700"},"คำถามล่าสุด"));
+  const tlist=H("div",{class:"pad",style:"padding-top:6px"},H("div",{class:"muted"},"กำลังโหลด…")); threadsCard.append(tlist);
+  c.append(threadsCard);
+  state.db.collection("chat").orderBy("updatedAt","desc").limit(15).get().then(snap=>{
+    tlist.innerHTML=""; if(snap.empty){ tlist.append(H("div",{class:"muted"},"ยังไม่มีคำถาม")); return; }
+    snap.docs.forEach(d=>{ const t=d.data(); const last=(t.messages||[])[t.messages.length-1];
+      tlist.append(H("div",{style:"padding:9px 0;border-bottom:1px solid var(--line);cursor:pointer",onclick:()=>openChat(d.id)},
+        H("div",{style:"font-weight:600"},t.indName||d.id),
+        H("div",{class:"muted",style:"font-size:12.5px"},(last?((last.byName||"?")+": "+last.text):"")+"  ("+(t.messages||[]).length+" ข้อความ)"))); });
+  }).catch(e=>{ tlist.innerHTML=""; tlist.append(H("div",{class:"muted"},"โหลดคำถามไม่ได้")); });
+
+  // roster by unit
+  const units=(state.config&&state.config.units)||[];
+  const byUnit=new Map(); state.indArr.forEach(i=>byUnit.set(i.unit,(byUnit.get(i.unit)||0)+1));
+  const rc=H("div",{class:"card"}); rc.append(H("div",{class:"pad",style:"padding-bottom:6px;font-weight:700"},"รายชื่อผู้รับผิดชอบตามหน่วยงาน"));
+  const tb=H("table"); tb.append(H("thead",{},H("tr",{},H("th",{},"หน่วยงาน"),H("th",{},"กลุ่ม"),H("th",{},"ผู้รับผิดชอบ"),H("th",{style:"width:90px"},"จำนวน KPI"))));
+  const tbody=H("tbody");
+  units.sort((a,b)=>a.name.localeCompare(b.name,"th")).forEach(u=>{
+    tbody.append(H("tr",{},H("td",{style:"font-weight:600"},u.name),
+      H("td",{},H("span",{class:"pill b"},domainMeta(u.domain).t)),
+      H("td",{class:"muted"},(u.owners||[]).join(", ")||"—"),
+      H("td",{class:"mono-num"},byUnit.get(u.key)||0))); });
+  tb.append(tbody); rc.append(tb); c.append(rc);
+
+  // user management (admin)
+  if(state.user.role==="admin"){
+    const uc=H("div",{class:"card",style:"margin-top:16px"});
+    uc.append(H("div",{class:"pad",style:"padding-bottom:6px;font-weight:700"},"จัดการผู้ใช้งาน (ผู้ดูแลระบบ)"));
+    const ul=H("div",{class:"pad",style:"padding-top:6px"},H("div",{class:"muted"},"กำลังโหลด…")); uc.append(ul); c.append(uc);
+    state.db.collection("users").get().then(snap=>{ ul.innerHTML="";
+      const tb2=H("table"); tb2.append(H("thead",{},H("tr",{},H("th",{},"ชื่อที่แสดง"),H("th",{},"ชื่อผู้ใช้"),H("th",{},"หน่วยงาน"),H("th",{},"สิทธิ์"),H("th",{},""))));
+      const tbb=H("tbody");
+      snap.docs.forEach(d=>{ const u=d.data();
+        const roleSel=H("select",{class:"inp",style:"width:auto;padding:5px"},H("option",{value:"user"},"ผู้รับผิดชอบ"),H("option",{value:"admin"},"ผู้ดูแลระบบ")); roleSel.value=u.role;
+        roleSel.onchange=async()=>{ try{ await state.db.doc("users/"+d.id).update({role:roleSel.value}); toast("อัปเดตสิทธิ์แล้ว"); }catch(e){toast("ไม่สำเร็จ");} };
+        const unitNames=(u.units||[]).map(k=>(units.find(x=>x.key===k)||{}).name||k).join(", ");
+        tbb.append(H("tr",{},H("td",{style:"font-weight:600"},u.displayName||u.username),H("td",{class:"muted"},u.username),
+          H("td",{class:"muted"},unitNames||"—"),H("td",{},roleSel),
+          H("td",{},H("button",{class:"btn sm",onclick:()=>editUserUnits(d.id,u)},"หน่วยงาน")))); });
+      tb2.append(tbb); ul.append(tb2);
+    }).catch(e=>{ ul.innerHTML=""; ul.append(H("div",{class:"muted"},"โหลดรายชื่อผู้ใช้ไม่ได้")); });
+  }
+}
+function editUserUnits(uid,u){
+  const units=(state.config&&state.config.units)||[]; const sel=new Set(u.units||[]);
+  const box=H("div",{style:"max-height:340px;overflow:auto"});
+  units.forEach(un=>{ const cb=H("input",{type:"checkbox"}); cb.checked=sel.has(un.key);
+    cb.onchange=()=>{ cb.checked?sel.add(un.key):sel.delete(un.key); };
+    box.append(H("label",{style:"display:flex;gap:8px;align-items:center;padding:4px 0;font-size:13px"},cb,un.name)); });
+  const save=H("button",{class:"btn primary"},"บันทึก");
+  save.onclick=async()=>{ try{ await state.db.doc("users/"+uid).update({units:[...sel]}); toast("บันทึกหน่วยงานแล้ว"); save.closest(".modal-bg").remove(); if(uid===state.user.uid){state.user.units=[...sel];} rerender(); }catch(e){toast("ไม่สำเร็จ: "+e.message);} };
+  modal("หน่วยงานที่รับผิดชอบ — "+(u.displayName||uid),box,[H("button",{class:"btn",onclick:e=>e.target.closest(".modal-bg").remove()},"ปิด"),save]);
+}
+function openChat(indId){
+  const ind=state.ind.get(indId); const ref=state.db.doc("chat/"+indId);
+  const body=H("div",{});
+  body.append(H("div",{class:"card pad",style:"margin-bottom:12px;background:var(--panel2)"},
+    H("div",{style:"font-weight:700"},ind?ind.name:indId),ind?H("div",{class:"muted",style:"font-size:12.5px"},ind.unitName+" • ผู้รับผิดชอบ: "+((ind.owners||[]).join(", ")||"—")):null));
+  const msgs=H("div",{style:"max-height:300px;overflow:auto;margin-bottom:12px"},H("div",{class:"muted"},"กำลังโหลด…"));
+  body.append(msgs);
+  const inp=H("textarea",{class:"inp",rows:2,placeholder:"พิมพ์คำถาม/ข้อความ…"});
+  const send=H("button",{class:"btn primary",style:"margin-top:8px"},"ส่งข้อความ");
+  body.append(inp,send);
+  function draw(list){ msgs.innerHTML=""; if(!list.length){msgs.append(H("div",{class:"muted"},"ยังไม่มีข้อความ — เริ่มถามได้เลย"));return;}
+    list.forEach(m=>{ const mine=m.by===state.user.username;
+      msgs.append(H("div",{style:"margin-bottom:10px;text-align:"+(mine?"right":"left")},
+        H("div",{style:"display:inline-block;max-width:80%;text-align:left;background:"+(mine?"var(--brand-soft)":"var(--panel2)")+";border:1px solid var(--line);border-radius:12px;padding:8px 12px"},
+          H("div",{style:"font-size:11.5px;font-weight:700;color:var(--muted)"},(m.byName||m.by)+(m.role==="admin"?" (ผู้ดูแล)":"")),
+          H("div",{},m.text),
+          H("div",{style:"font-size:10.5px;color:var(--muted);margin-top:2px"},new Date(m.at).toLocaleString("th-TH"))))); });
+    msgs.scrollTop=msgs.scrollHeight; }
+  ref.get().then(s=>draw(s.exists?(s.data().messages||[]):[])).catch(()=>draw([]));
+  send.onclick=async()=>{ const text=inp.value.trim(); if(!text)return; send.textContent="…";
+    const msg={by:state.user.username,byName:state.user.displayName||state.user.username,role:state.user.role,text,at:new Date().toISOString()};
+    try{ const s=await ref.get(); const cur=s.exists?(s.data().messages||[]):[]; cur.push(msg);
+      await ref.set({indId,indName:ind?ind.name:indId,messages:cur,updatedAt:Date.now()});
+      inp.value=""; draw(cur); send.textContent="ส่งข้อความ"; toast("ส่งข้อความแล้ว");
+    }catch(e){ toast("ส่งไม่สำเร็จ: "+e.message); send.textContent="ส่งข้อความ"; } };
+  modal("กล่องคำถามตัวชี้วัด",body,[H("button",{class:"btn",onclick:e=>e.target.closest(".modal-bg").remove()},"ปิด")]);
+}
+
+/* ================= start ================= */
+boot();
+</script>

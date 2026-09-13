@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // ค่าคอนฟิก + รายชื่อหน่วยงาน — อ่านได้ทั่วไป (ใช้ในหน้าสมัคร) แต่แก้ไขได้เฉพาะผู้ดูแล
+    match /meta/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ตัวชี้วัด + ผลการบันทึก — เฉพาะผู้ที่ล็อกอินเท่านั้น (บุคลากรในโรงพยาบาล)
+    match /indicators/{id} {
+      allow read: if signedIn();
+      allow write: if signedIn();
+    }
+
+    // กล่องคำถาม
+    match /chat/{id} {
+      allow read: if signedIn();
+      allow write: if signedIn();
+    }
+
+    // ผู้ใช้งาน — อ่านได้ถ้าล็อกอิน, สร้างได้เฉพาะบัญชีตัวเอง, แก้ไข/ลบได้เฉพาะเจ้าของหรือผู้ดูแล
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create: if request.auth.uid == uid;
+      allow update, delete: if request.auth.uid == uid || isAdmin();
+    }
+  }
+}
